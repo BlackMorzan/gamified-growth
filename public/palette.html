@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Tokens — Baby Skill Tree</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #1a1a2e;
+      color: #eaeaea;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      padding: 2rem;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+    .page-meta {
+      font-size: 12px;
+      color: #9aa3b4;
+      margin-bottom: 2rem;
+    }
+    .pal { max-width: 860px; }
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: #9aa3b4;
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      margin: 1.75rem 0 0.75rem;
+    }
+    .swatch-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .swatch { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .swatch-block { width: 80px; height: 56px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08); }
+    .swatch-hex { font-size: 10px; color: #9aa3b4; font-family: monospace; }
+    .swatch-name { font-size: 10px; color: #9aa3b4; text-align: center; max-width: 80px; line-height: 1.3; }
+    .divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 2rem 0; }
+    .state-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1rem; }
+    .state-card { width: 156px; border-radius: 8px; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.10); }
+    .state-label { font-size: 11px; font-weight: 500; margin-bottom: 3px; }
+    .state-token { font-size: 9px; font-family: monospace; opacity: 0.55; margin-bottom: 2px; }
+    .state-hex { font-size: 10px; font-family: monospace; opacity: 0.7; }
+    .state-skill-name { font-size: 10px; margin-top: 6px; }
+    .type-row { display: flex; flex-direction: column; gap: 12px; }
+    .type-sample { display: flex; align-items: baseline; gap: 16px; }
+    .type-meta { font-size: 11px; color: #9aa3b4; min-width: 200px; font-family: monospace; }
+    .spacing-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 0.5rem; }
+    .space-sample { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .space-block { background: #06b6d4; opacity: 0.5; height: 8px; border-radius: 2px; }
+    .space-label { font-size: 10px; color: #9aa3b4; font-family: monospace; }
+  </style>
+</head>
+<body>
+<div class="pal">
+
+  <h1>Baby Skill Tree</h1>
+  <p class="page-meta">Design token reference · palette.html · source of truth for tokens.css</p>
+
+  <!-- SURFACES -->
+  <div class="section-label">Base surfaces</div>
+  <div class="swatch-row">
+    <div class="swatch">
+      <div class="swatch-block" style="background:#1a1a2e;"></div>
+      <div class="swatch-hex">#1a1a2e</div>
+      <div class="swatch-name">--color-bg</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#1e2548;"></div>
+      <div class="swatch-hex">#1e2548</div>
+      <div class="swatch-name">--color-surface</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#0f3460;"></div>
+      <div class="swatch-hex">#0f3460</div>
+      <div class="swatch-name">--color-surface-deep ⚠ darker than surface</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#3a3a52;"></div>
+      <div class="swatch-hex">#3a3a52</div>
+      <div class="swatch-name">--color-disabled</div>
+    </div>
+  </div>
+
+  <!-- ACCENTS -->
+  <div class="section-label">Accents</div>
+  <div class="swatch-row">
+    <div class="swatch">
+      <div class="swatch-block" style="background:#06b6d4;"></div>
+      <div class="swatch-hex">#06b6d4</div>
+      <div class="swatch-name">--color-accent (action only)</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#f5a623;"></div>
+      <div class="swatch-hex">#f5a623</div>
+      <div class="swatch-name">--color-accent-gold (milestone)</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#e94560;"></div>
+      <div class="swatch-hex">#e94560</div>
+      <div class="swatch-name">--color-error (danger only)</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#5bbf7a;"></div>
+      <div class="swatch-hex">#5bbf7a</div>
+      <div class="swatch-name">--color-success-text</div>
+    </div>
+  </div>
+
+  <!-- TEXT -->
+  <div class="section-label">Text</div>
+  <div class="swatch-row">
+    <div class="swatch">
+      <div class="swatch-block" style="background:#eaeaea; border-color:rgba(0,0,0,0.15);"></div>
+      <div class="swatch-hex">#eaeaea</div>
+      <div class="swatch-name">--color-text</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#9aa3b4;"></div>
+      <div class="swatch-hex">#9aa3b4</div>
+      <div class="swatch-name">--color-text-muted</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#6b7585;"></div>
+      <div class="swatch-hex">#6b7585</div>
+      <div class="swatch-name">--color-text-locked</div>
+    </div>
+  </div>
+
+  <!-- BORDERS -->
+  <div class="section-label">Borders &amp; focus</div>
+  <div class="swatch-row">
+    <div class="swatch">
+      <div class="swatch-block" style="background:rgba(255,255,255,0.10); border-color:rgba(255,255,255,0.10);"></div>
+      <div class="swatch-hex">rgba(255,255,255,0.10)</div>
+      <div class="swatch-name">--color-border-subtle</div>
+    </div>
+    <div class="swatch">
+      <div class="swatch-block" style="background:#06b6d4;"></div>
+      <div class="swatch-hex">#06b6d4</div>
+      <div class="swatch-name">--color-focus-ring</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- SKILL STATES -->
+  <div class="section-label">Skill states</div>
+  <div class="state-row">
+
+    <div class="state-card" style="background:#2d2d48;">
+      <div class="state-label" style="color:#6b7585;">🔒 Locked</div>
+      <div class="state-token" style="color:#6b7585;">--color-skill-locked</div>
+      <div class="state-hex" style="color:#6b7585;">#2d2d48</div>
+      <div class="state-skill-name" style="color:#6b7585;">Head Control</div>
+    </div>
+
+    <div class="state-card" style="background:#1b3a6b; border-color:#06b6d4;">
+      <div class="state-label" style="color:#eaeaea;">◎ Available</div>
+      <div class="state-token" style="color:#9aa3b4;">--color-skill-available</div>
+      <div class="state-hex" style="color:#9aa3b4;">#1b3a6b</div>
+      <div class="state-skill-name" style="color:#9aa3b4;">Head Control</div>
+    </div>
+
+    <div class="state-card" style="background:#1e4280; border-color:#06b6d4; box-shadow:0 0 8px rgba(6,182,212,0.25);">
+      <div class="state-label" style="color:#eaeaea;">◎ Available (hover)</div>
+      <div class="state-token" style="color:#9aa3b4;">--color-skill-available-hover</div>
+      <div class="state-hex" style="color:#9aa3b4;">#1e4280</div>
+      <div class="state-skill-name" style="color:#9aa3b4;">Head Control</div>
+    </div>
+
+    <div class="state-card" style="background:#1a4731; border-color:#2d7a4f;">
+      <div class="state-label" style="color:#eaeaea;">✓ Acquired</div>
+      <div class="state-token" style="color:#9aa3b4;">--color-skill-acquired</div>
+      <div class="state-hex" style="color:#9aa3b4;">#1a4731 / border #2d7a4f</div>
+      <div class="state-skill-name" style="color:#9aa3b4;">Head Control · 14 Mar</div>
+    </div>
+
+    <div class="state-card" style="background:#4a3000; border-color:#f5a623;">
+      <div class="state-label" style="color:#f5a623;">★ Milestone</div>
+      <div class="state-token" style="color:#9aa3b4;">--color-skill-milestone</div>
+      <div class="state-hex" style="color:#9aa3b4;">#4a3000</div>
+      <div class="state-skill-name" style="color:#9aa3b4;">First Steps</div>
+    </div>
+
+    <div class="state-card" style="background:#4a3000; border-color:#f5a623;">
+      <div class="state-label" style="color:#f5a623;">★ ✓ Acquired Milestone</div>
+      <div class="state-token" style="color:#9aa3b4;">gold wins over green</div>
+      <div class="state-hex" style="color:#9aa3b4;">#4a3000 / border #f5a623</div>
+      <div class="state-skill-name" style="color:#9aa3b4;">First Steps · 22 Apr</div>
+    </div>
+
+  </div>
+
+  <hr class="divider">
+
+  <!-- SPACING -->
+  <div class="section-label">Spacing scale (4px base)</div>
+  <div class="spacing-row">
+    <div class="space-sample"><div class="space-block" style="width:4px;"></div><div class="space-label">--space-1<br>4px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:8px;"></div><div class="space-label">--space-2<br>8px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:12px;"></div><div class="space-label">--space-3<br>12px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:16px;"></div><div class="space-label">--space-4<br>16px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:20px;"></div><div class="space-label">--space-5<br>20px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:24px;"></div><div class="space-label">--space-6<br>24px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:32px;"></div><div class="space-label">--space-8<br>32px</div></div>
+    <div class="space-sample"><div class="space-block" style="width:48px;"></div><div class="space-label">--space-12<br>48px</div></div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- TYPOGRAPHY -->
+  <div class="section-label">Typography</div>
+  <div class="type-row">
+    <div class="type-sample">
+      <div class="type-meta">Cinzel 400 20px — milestone display</div>
+      <div style="font-family:'Cinzel',serif; font-size:20px; color:#eaeaea; letter-spacing:0.04em;">First Steps</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Cinzel 400 16px — skill name (min)</div>
+      <div style="font-family:'Cinzel',serif; font-size:16px; color:#eaeaea; letter-spacing:0.03em;">Head Control</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Cinzel 400 16px gold — milestone</div>
+      <div style="font-family:'Cinzel',serif; font-size:16px; color:#f5a623; letter-spacing:0.05em;">★ Milestone Reached</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Inter 400 14px — body / evidence</div>
+      <div style="font-family:'Inter',system-ui,sans-serif; font-size:14px; color:#eaeaea; line-height:1.5;">holds head briefly when prone</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Inter 400 12px — meta / muted</div>
+      <div style="font-family:'Inter',system-ui,sans-serif; font-size:12px; color:#9aa3b4;">Acquired · 14 Mar 2025 · Age 3m</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Inter 400 12px — success</div>
+      <div style="font-family:'Inter',system-ui,sans-serif; font-size:12px; color:#5bbf7a;">Skill saved</div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
