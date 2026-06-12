@@ -1,103 +1,8 @@
 # Baby Skill Tree — Project Brief
 
-## What This App Is
+> **Project overview, phase roadmap/status, stack, and the data model live in [`README.md`](./README.md).** This file holds the working instructions that steer how code is written. When the roadmap or stack changes, update the README, not this file.
 
-An **offline-first PWA** that helps parents track their baby's developmental milestones from 0–24 months. The core is a static skill tree (skills that unlock and strengthen each other); user input is minimal: skill acquisition dates, a baby photo, and date of birth.
-
-~95% of the app is static data. ~5% is user-owned data stored locally on device.
-
----
-
-## Current Status
-
-**Phase 2b is the target.** Everything from 3 onward is future scope.
-
-| Phase | Description | Deliverable | Status |
-|-------|-------------|-------------|--------|
-| 0 | Scaffold — Vue 3 + Vite + TS + Pinia + Router + ESLint, design tokens, self-hosted fonts | Running app at localhost | ✅ Done |
-| 1a | Skill tree schema + ~20 real skills authored | Valid `src/data/skills.ts`, importable | ⬜ Next |
-| 1b | Style mockup — tokens, skill card in 4 states, main layout | `palette.html` locked; tree layout designed | 🔄 In progress |
-| 2a | Skill tree screen — read-only, browsable, no user data | Vue app renders static skill tree | ⬜ |
-| 2b | User input — baby profile + mark skill as acquired | localStorage, fully offline | 🎯 **Target** |
-| 2c | PWA shell — installable on Android, passes Lighthouse | vite-plugin-pwa configured | ⬜ |
-| 3 | Two locales: Polish + English | i18n | Future |
-| 4 | Migrate to web (accounts, backend) | Backend + auth | Future |
-| 5 | Media: images/videos per skill | Assets per skill node | Future |
-| 6 | Shareable progress across accounts | Sync | Future |
-
-### Phase 1b progress detail
-
-| Item | Status |
-|------|--------|
-| Design tokens → `src/assets/tokens.css` | ✅ |
-| Token reference → `public/palette.html` | ✅ |
-| All 5 card states rendered in Vue (`HomeView`) | ✅ |
-| Self-hosted fonts (Cinzel + Inter, offline-safe) | ✅ |
-| Tree layout design (how 50+ cards arrange) | ⬜ |
-
----
-
-## Stack
-
-| Tool | Decision | Notes |
-|------|----------|-------|
-| Vue 3 + Vite | ✅ Installed | Composition API + `<script setup>` throughout |
-| TypeScript | ✅ Installed | Strict mode, but don't fight it — loose assertions over 3-line type gymnastics |
-| Pinia | ✅ Installed | Worth it for cross-component reactive state; use typed stores |
-| Vue Router | ✅ Installed | Single route for now; expands per phase |
-| ESLint | ✅ Installed | `eslint-plugin-vue` + `@vue/eslint-config-typescript`, flat config (v9). `npm run lint` to fix, `npm run lint:check` for CI |
-| vite-plugin-pwa | ⬜ Phase 2c | Non-negotiable — this is the Phase 2c deliverable |
-| localStorage | ✅ For now | User data is tiny (profile + ~50 skill records); no need for IndexedDB yet |
-| Dexie.js | ⏸ Deferred | Revisit in Phase 4 when sync/querying/media blobs make it worth the API surface |
-
-If suggesting a swap, briefly explain the tradeoff first. Don't change without flagging it.
-
----
-
-## Core Data Model
-
-Skills reference each other. This is the most important structure in the codebase:
-
-```ts
-interface Skill {
-  id: string                    // e.g. "PM001"
-                                // PMxxx = Physical & Motor
-                                // COxxx = Cognitive
-                                // LCxxx = Language & Communication
-                                // SExxx = Social & Emotional
-  name: string
-  domain: SkillDomain           // e.g. "physical_motor"
-  category: SkillCategory       // e.g. "gross_motor"
-  tier: number                  // rough difficulty/age tier
-
-  requires: string[]            // skill IDs that must be acquired first
-  strengthens: string[]         // skills this one supports (soft dependency)
-  // unlocks[] is DERIVED — do not author it. Computed at runtime by inverting requires[].
-
-  milestone: boolean            // whether this is a key milestone
-  evidence: string[]            // observable behaviors confirming the skill
-
-  typical_age_months: {
-    start: number
-    end: number
-  }
-}
-```
-
-User data stored separately (locally):
-
-```ts
-interface BabyProfile {
-  name: string
-  birthDate: string             // ISO date
-  photoUrl?: string             // base64 data URL — NOT a blob URL (blob URLs die on page close)
-}
-
-interface AcquiredSkill {
-  skillId: string
-  acquiredDate: string          // ISO date
-}
-```
+Quick orientation: an **offline-first PWA** tracking a baby's developmental milestones (0–24 months) as a gamified skill tree. ~95% static data, ~5% user-owned data in localStorage. **Phase 2b is the current target.** The canonical data model + skill schema is [`src/data/skills.ts`](./src/data/skills.ts).
 
 ---
 
@@ -126,8 +31,39 @@ interface AcquiredSkill {
 - Default to the simplest solution that satisfies Phase 2
 - Don't build Phase 3–6 infrastructure speculatively
 - If a decision has a meaningful tradeoff, surface it briefly before proceeding
-- When generating skill tree data, match the schema above exactly
+- When generating skill tree data, match the `Skill` schema in `src/data/skills.ts` exactly
 - Prefer `const` composables and typed Pinia stores
+
+---
+
+## Installed Plugins — when to reach for them
+
+Three plugins are installed. Use them proactively when the task matches; they are not auto-invoked for everything. **Project-specific overrides below are mandatory — prefer them over any default the plugin suggests.**
+
+### Vue work → `vue-development`
+- **Use for:** authoring or planning any Vue component, composable, or `<script setup>` block. TS-first patterns: `defineProps<{}>()`, typed `defineEmits`, `defineModel<T>()`, `useX` composables.
+- **Overrides:**
+  - **Routing** — this project uses plain `vue-router` via `src/router/index.ts`. **Ignore the skill's file-based routing (`unplugin-vue-router`, `[param].vue`) guidance.**
+  - **Testing** — when tests exist, use Vitest + Testing Library, but **do NOT use MSW**: this app has no API. Mock `localStorage`, not HTTP.
+
+### TypeScript / JS → `javascript-typescript`
+- **Use for:** advanced types on the skill graph, modern JS patterns, test infra setup.
+- Useful skills: `typescript-advanced-types`, `modern-javascript-patterns`, `javascript-testing-patterns` (Vitest).
+- Agents: `typescript-pro`, `javascript-pro` (via the Agent tool for deeper, isolated work).
+- **Ignore:** `nodejs-backend-patterns` — no backend until Phase 4.
+
+### UI / UX / accessibility → `ui-design`
+- **Use for:** building UI components, accessibility audits, interaction/motion polish.
+- Useful skills: `web-component-design` (Vue), `interaction-design` (matches our animate-on-acquire + "new" badge decisions), `accessibility-compliance` / `visual-design-foundations` / `responsive-design`.
+- Commands: `/ui-design:create-component`, `/ui-design:accessibility-audit`, `/ui-design:design-review`.
+- Agents: `ui-designer`, `accessibility-expert`, `design-system-architect`.
+- **Overrides:**
+  - **Design tokens already exist.** Pin `design-system-architect` / `design-system-setup` to `src/assets/tokens.css` and the Design Direction section below. **Do NOT green-field a new palette** over the Civ-6 direction.
+  - **Ignore** `mobile-ios-design`, `mobile-android-design`, `react-native-design` — this is a web PWA, not a native app.
+
+### Gaps (no plugin covers these — handle directly, anchored to this file)
+- **PWA / service worker / Lighthouse** (Phase 2c) — hand-rolled with `vite-plugin-pwa`.
+- **Android** — our target is the PWA in Chrome-on-Android, i.e. web work; there is no native Android tooling here.
 
 ---
 
