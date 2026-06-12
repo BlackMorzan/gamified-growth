@@ -109,8 +109,8 @@ Color palette (earthy, game-adjacent)
   --color-error:         #e94560   (danger, errors, destructive actions only)
   --color-accent-gold:   #f5a623   (milestone highlights, unlocks, XP rewards — use sparingly)
   --color-text:          #eaeaea   (primary text)
-  --color-text-muted:    #9aa3b4   (secondary text — raised from #8892a4 to clear AA on card surfaces)
-  --color-text-locked:   #6b7585   (text on locked cards — AA compliant on #2d2d48)
+  --color-text-muted:    #aab3c4   (secondary text — AA ≥4.5:1 on every card fill, incl. hover #1e4280)
+  --color-text-locked:   #909aab   (text on locked cards — AA 4.68:1 on #2d2d48)
   --color-border-subtle: rgba(255,255,255,0.10)  (default card border — use token, not inline rgba)
   --color-focus-ring:    #06b6d4   (keyboard focus outline — 2px solid, 2px offset)
   --color-success-text:  #5bbf7a   (inline confirmations, toasts — earthy green)
@@ -121,7 +121,7 @@ Color palette (earthy, game-adjacent)
   --color-skill-available:       #1b3a6b  (reachable — distinct from surface-deep #0f3460)
   --color-skill-available-hover: #1e4280  (hover/focus state)
   --color-skill-acquired:        #1a4731  (completed — dark green)
-  --color-skill-acquired-border: #2d7a4f  (acquired card border)
+  --color-skill-acquired-border: #42a873  (acquired card border — 3.56:1 on #1a4731, AA non-text ≥3:1)
   --color-skill-milestone:       #4a3000  (milestone — gold-tinted)
 
 Spacing scale (4px base)
@@ -136,7 +136,7 @@ Radius
 Borders
   Default:    1px solid --color-border-subtle
   Available:  1px solid --color-accent (#06b6d4)
-  Acquired:   1px solid --color-skill-acquired-border (#2d7a4f)
+  Acquired:   1px solid --color-skill-acquired-border (#42a873)
   Milestone:  1px solid --color-accent-gold (#f5a623)
   Focus/active: --color-accent full opacity + box-shadow glow rgba(6,182,212,0.25)
 ```

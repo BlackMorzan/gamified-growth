@@ -48,8 +48,8 @@
   --color-disabled:      #3a3a52;
 
   --color-text:          #eaeaea;
-  --color-text-muted:    #9aa3b4;
-  --color-text-locked:   #6b7585;
+  --color-text-muted:    #aab3c4;  /* AA (≥4.5:1) on all card fills incl. hover #1e4280 */
+  --color-text-locked:   #909aab;  /* AA (4.68:1) on locked card #2d2d48 */
 
   --color-border-subtle: rgba(255, 255, 255, 0.10);
   --color-focus-ring:    #06b6d4;
@@ -58,7 +58,7 @@
   --color-skill-available:       #1b3a6b;
   --color-skill-available-hover: #1e4280;
   --color-skill-acquired:        #1a4731;
-  --color-skill-acquired-border: #2d7a4f;
+  --color-skill-acquired-border: #42a873;  /* 3.56:1 on acquired fill #1a4731 — AA non-text (≥3:1) */
   --color-skill-milestone:       #4a3000;
 
   --space-1:  4px;
