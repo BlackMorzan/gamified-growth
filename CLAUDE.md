@@ -61,6 +61,10 @@ Skills reference each other. This is the most important structure in the codebas
 ```ts
 interface Skill {
   id: string                    // e.g. "PM001"
+                                // PMxxx = Physical & Motor
+                                // COxxx = Cognitive
+                                // LCxxx = Language & Communication
+                                // SExxx = Social & Emotional
   name: string
   domain: SkillDomain           // e.g. "physical_motor"
   category: SkillCategory       // e.g. "gross_motor"
