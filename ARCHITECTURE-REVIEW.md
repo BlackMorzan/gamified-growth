@@ -34,23 +34,28 @@ Legend: priority **[H]** high · **[M]** medium · **[L]** low.
   - Corrected the false "AA compliant" comments in both `tokens.css` and CLAUDE.md. No hardcoded hexes in `src/` — fix propagates via tokens.
 
 ### H3 — Graph-derivation layer (pure module → thin composable)  `[H]` · TypeScript + Vue
-- [ ] **Finding:** `unlocks[]` (invert `requires[]`), per-skill availability, and "newly-unlocked" all depend on logic that doesn't exist yet.
+- [x] **Finding:** `unlocks[]` (invert `requires[]`), per-skill availability, and "newly-unlocked" all depend on logic that doesn't exist yet.
 - **Why:** every UI state (locked/available) and the acquire-reveal flow hinge on it.
 - **Where:** pure static inversion in `src/lib/skillGraph.ts` (computed once at module load, `readonly` lookups: `unlocksById`, `getUnlocks(id): readonly Skill[]`, `getRequirements(id)`). Reactive layer in `src/composables/useSkillGraph.ts` that overlays the acquired-set from the store.
 - **Action:** build the pure module first (resolves the two agents' module-vs-composable tension — pure data logic ≠ Vue reactivity), then the composable. Keep "is available given acquired set" in the composable, not the module.
-- **Decision:**
+- **Decision:** PARTIAL — pure half done, **pending manual review** (see banner above).
+  - `src/lib/skillGraph.ts`: `unlocksById` reverse index built once at load by inverting `requires[]`; `getUnlocks` / `getRequirements` return `readonly Skill[]`. `buildSkillGraph(skills)` factory mirrors `validateSkills` for fixture-injected tests. Built over the *global* skill list so cross-domain edges (LC007→SE003) survive; dangling refs ignored (validator owns that). 10 tests incl. a full requires[]↔unlocks inverse check across all 84 skills. lint + type-check clean.
+  - **Still TODO:** reactive `useSkillGraph.ts` (`isAvailable` / `stateOf`), blocked on the M2 store for the acquired-set. Do *not* start it until this module is reviewed.
 
 ### H4 — Shared types for state + user data  `[H]` · TypeScript
-- [ ] **Finding:** no `SkillState` type; `BabyProfile`/`AcquiredSkill` exist only in prose.
+- [x] **Finding:** no `SkillState` type; `BabyProfile`/`AcquiredSkill` exist only in prose.
 - **Where:** `SkillState = 'locked' | 'available' | 'acquired' | 'milestone' | 'acquired-milestone'` and `SkillWithState` in `src/data/skills.ts` or `src/types.ts`; user interfaces in `src/types/user.ts`.
 - **Action:** define before building components so card props are typed.
-- **Decision:**
+- **Decision:** DONE (committed). Split into two files along the static/user seam:
+  - `src/types/user.ts` — **general user data** `BabyProfile` (name + ISO `birthDate`) and the **user-input ↔ skill link** `AcquiredSkill` (`skillId` FK + `acquiredDate`). Acquisitions store only the skill *reference*, never copied skill fields, so they can't drift from static data. Added a `PersistedUserData` envelope (`version` + profile + acquired[]) as the shared shape M2's storage layer reads/validates.
+  - `src/types/skillState.ts` — the **derived overlay**: `SkillState` union (matches CLAUDE.md visual-language table; hover excluded as transient) + `SkillWithState` = `{ skill, state, acquiredDate }` (static `Skill` stays nested/untouched). This is SkillCard's prop shape (H5).
+  - Chose a dedicated `src/types/` dir over polluting `skills.ts`; derivation logic stays in the H3 composable, not these types. type-check + lint clean.
 
 ### H5 — Decompose HomeView; choose SkillCard architecture  `[H]` · Vue + Design System
-- [ ] **Finding:** `HomeView` hardcodes 5 cards + all card CSS inline. The 6 states are the same structure swapping bg/border/accent.
+- [x] **Finding:** `HomeView` hardcodes 5 cards + all card CSS inline. The 6 states are the same structure swapping bg/border/accent.
 - **Where:** new `src/components/SkillCard.vue`, `DomainSection.vue`, `SkillTree.vue`; move card CSS out of `HomeView`.
 - **Action:** **single `SkillCard.vue` + `state` prop + computed mapping to existing `--color-skill-*` tokens** (inline custom properties), NOT a BEM modifier-class explosion. Structurally fixes the "gold wins" override and removes the dead `--acquired-milestone` class. Children emit intent (`select`), parents call store actions. Keep `<150` lines.
-- **Decision:**
+- **Decision:** It is a mockup to test general look. Of corse it does not look right
 
 ### H6 — Make cards real `<button>`s  `[H]` · Accessibility
 - [ ] **Finding:** the available card is `<div tabindex="0">` — focusable but no role, no Enter/Space handler, no accessible name (fails WCAG 4.1.2 + 2.1.1). Only available is reachable, yet **every** card must expand to its evidence list (locked → "requires: …").
