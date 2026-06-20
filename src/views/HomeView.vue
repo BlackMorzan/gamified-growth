@@ -5,8 +5,11 @@
 <template>
   <main class="home">
     <header class="app-header">
-      <h1 class="app-title">Baby Skill Tree</h1>
-      <p class="app-subtitle">0–24 months · developmental milestones</p>
+      <div class="app-header__text">
+        <h1 class="app-title">Baby Skill Tree</h1>
+        <p class="app-subtitle">0–24 months · developmental milestones</p>
+      </div>
+      <RouterLink to="/tree" class="nav-link">View Skill Tree →</RouterLink>
     </header>
 
     <section class="skill-section">
@@ -56,7 +59,24 @@
 }
 
 .app-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: var(--space-8);
+}
+
+.nav-link {
+  font-size: 14px;
+  color: var(--color-accent);
+  text-decoration: none;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: var(--color-skill-available);
 }
 
 .app-title {
