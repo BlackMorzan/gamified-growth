@@ -39,4 +39,6 @@ export interface PersistedUserData {
   version: 1
   profile: BabyProfile | null
   acquired: AcquiredSkill[]
+  /** Snapshot of available skill IDs at the end of the previous session — used to compute new-badge diff on next visit. */
+  prevSessionAvailableIds: string[]
 }

@@ -9,6 +9,10 @@
 //   first demands them (PM004, PM007, PM011, CO012 respectively).
 //
 // Do NOT author `unlocks[]` — it is derived at runtime by inverting `requires[]`.
+//
+// Tier/row invariant: all requires[] edges must point from a lower tier to a higher tier
+// (same-tier edges produce degenerate bezier curves in the tree layout). Rows are
+// 1-based lanes within a domain — no cross-domain row sharing.
 
 // ---------------------------------------------------------------------------
 // Types
@@ -50,7 +54,8 @@ export interface Skill {
   name: string
   domain: SkillDomain
   category: SkillCategory
-  tier: number
+  tier: number   // column in the domain tree — all requires[] must be in a lower tier
+  row: number    // lane within the domain tree — 1-based, scoped per domain
 
   requires: string[]       // hard prerequisites — must be acquired first
   strengthens: string[]    // soft supports — helps but does not gate
@@ -66,6 +71,7 @@ export interface Skill {
 
 // ===========================================================================
 // PHYSICAL & MOTOR  (PM001 – PM024)
+// 9 tiers — cascade from PM008 requiring same-tier PM006 in the original data
 // ===========================================================================
 
 // --- Tier 1 — Foundations --------------------------------------------------
@@ -76,6 +82,7 @@ const PM001: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 1,
+  row: 1,
   requires: [],
   strengthens: ['PM005', 'PM007'],
   milestone: true,
@@ -93,6 +100,7 @@ const PM002: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 1,
+  row: 2,
   requires: [],
   strengthens: ['PM006'],
   milestone: false,
@@ -110,6 +118,7 @@ const PM003: Skill = {
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 1,
+  row: 3,
   requires: [],
   strengthens: ['PM006', 'PM008'],
   milestone: false,
@@ -127,6 +136,7 @@ const PM004: Skill = {
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 1,
+  row: 4,
   requires: [],
   strengthens: ['PM008'],
   milestone: false,
@@ -146,6 +156,7 @@ const PM005: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 2,
+  row: 1,
   requires: ['PM001'],
   strengthens: ['PM009'],
   milestone: true,
@@ -157,29 +168,13 @@ const PM005: Skill = {
   typical_age_months: { start: 3, end: 6 },
 }
 
-const PM006: Skill = {
-  id: 'PM006',
-  name: 'Purposeful Reaching',
-  domain: 'physical_motor',
-  category: 'fine_motor',
-  tier: 2,
-  requires: ['PM002', 'PM003'],
-  strengthens: ['PM008'],
-  milestone: false,
-  evidence: [
-    'Extends arm toward a nearby toy with clear intent',
-    'Adjusts trajectory mid-reach when object is moved slightly',
-    'Reaches with one hand rather than swiping with both',
-  ],
-  typical_age_months: { start: 3, end: 5 },
-}
-
 const PM007: Skill = {
   id: 'PM007',
   name: 'Supported Sitting',
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 2,
+  row: 2,
   requires: ['PM001'],
   strengthens: ['PM009', 'PM010'],
   milestone: false,
@@ -191,58 +186,25 @@ const PM007: Skill = {
   typical_age_months: { start: 4, end: 6 },
 }
 
-const PM008: Skill = {
-  id: 'PM008',
-  name: 'Grasping Objects',
+const PM006: Skill = {
+  id: 'PM006',
+  name: 'Purposeful Reaching',
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 2,
-  requires: ['PM006', 'PM003'],
-  strengthens: ['PM011', 'PM012'],
+  row: 3,
+  requires: ['PM002', 'PM003'],
+  strengthens: ['PM008'],
   milestone: false,
   evidence: [
-    'Closes fingers around a rattle placed in palm with clear intent',
-    'Holds a small toy for several seconds before dropping',
-    'Grasps a dangling ring and pulls it toward them',
+    'Extends arm toward a nearby toy with clear intent',
+    'Adjusts trajectory mid-reach when object is moved slightly',
+    'Reaches with one hand rather than swiping with both',
   ],
-  typical_age_months: { start: 3, end: 6 },
+  typical_age_months: { start: 3, end: 5 },
 }
 
 // --- Tier 3 ----------------------------------------------------------------
-
-const PM009: Skill = {
-  id: 'PM009',
-  name: 'Independent Sitting',
-  domain: 'physical_motor',
-  category: 'gross_motor',
-  tier: 3,
-  requires: ['PM007'],
-  strengthens: ['PM013'],
-  milestone: true,
-  evidence: [
-    'Sits without support for at least 30 seconds',
-    'Reaches for a toy from seated position without toppling',
-    'Recovers balance after leaning to one side',
-  ],
-  typical_age_months: { start: 5, end: 8 },
-}
-
-const PM010: Skill = {
-  id: 'PM010',
-  name: 'Object Transfer Between Hands',
-  domain: 'physical_motor',
-  category: 'object_manipulation',
-  tier: 3,
-  requires: ['PM008'],
-  strengthens: ['PM012', 'PM015'],
-  milestone: false,
-  evidence: [
-    'Passes a small toy from one hand to the other',
-    'Holds two objects simultaneously, one in each hand',
-    'Reaches for a second toy while holding a first',
-  ],
-  typical_age_months: { start: 5, end: 7 },
-}
 
 const PM011: Skill = {
   id: 'PM011',
@@ -250,6 +212,7 @@ const PM011: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 3,
+  row: 1,
   requires: ['PM005', 'PM007'],
   strengthens: ['PM013'],
   milestone: false,
@@ -261,21 +224,40 @@ const PM011: Skill = {
   typical_age_months: { start: 6, end: 9 },
 }
 
-const PM012: Skill = {
-  id: 'PM012',
-  name: 'Controlled Release of Objects',
+const PM009: Skill = {
+  id: 'PM009',
+  name: 'Independent Sitting',
   domain: 'physical_motor',
-  category: 'object_manipulation',
+  category: 'gross_motor',
   tier: 3,
-  requires: ['PM008'],
-  strengthens: ['PM015', 'PM019'],
+  row: 2,
+  requires: ['PM007'],
+  strengthens: ['PM013'],
+  milestone: true,
+  evidence: [
+    'Sits without support for at least 30 seconds',
+    'Reaches for a toy from seated position without toppling',
+    'Recovers balance after leaning to one side',
+  ],
+  typical_age_months: { start: 5, end: 8 },
+}
+
+const PM008: Skill = {
+  id: 'PM008',
+  name: 'Grasping Objects',
+  domain: 'physical_motor',
+  category: 'fine_motor',
+  tier: 3,
+  row: 3,
+  requires: ['PM006', 'PM003'],
+  strengthens: ['PM011', 'PM012'],
   milestone: false,
   evidence: [
-    'Drops a toy into a container on purpose',
-    'Hands an object to a caregiver on request',
-    'Places an object down gently rather than just dropping it',
+    'Closes fingers around a rattle placed in palm with clear intent',
+    'Holds a small toy for several seconds before dropping',
+    'Grasps a dangling ring and pulls it toward them',
   ],
-  typical_age_months: { start: 6, end: 9 },
+  typical_age_months: { start: 3, end: 6 },
 }
 
 // --- Tier 4 ----------------------------------------------------------------
@@ -286,6 +268,7 @@ const PM013: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 4,
+  row: 1,
   requires: ['PM011', 'PM009'],
   strengthens: ['PM017'],
   milestone: true,
@@ -297,29 +280,51 @@ const PM013: Skill = {
   typical_age_months: { start: 7, end: 10 },
 }
 
-const PM014: Skill = {
-  id: 'PM014',
-  name: 'Pincer Grasp',
+const PM010: Skill = {
+  id: 'PM010',
+  name: 'Object Transfer Between Hands',
   domain: 'physical_motor',
-  category: 'fine_motor',
+  category: 'object_manipulation',
   tier: 4,
-  requires: ['PM010', 'PM012'],
-  strengthens: ['PM019', 'PM020'],
-  milestone: true,
+  row: 2,
+  requires: ['PM008'],
+  strengthens: ['PM012', 'PM015'],
+  milestone: false,
   evidence: [
-    'Picks up a small piece of food using tip of thumb and index finger',
-    'Picks up a Cheerio or pea-sized object without raking motion',
-    'Points with isolated index finger',
+    'Passes a small toy from one hand to the other',
+    'Holds two objects simultaneously, one in each hand',
+    'Reaches for a second toy while holding a first',
   ],
-  typical_age_months: { start: 7, end: 10 },
+  typical_age_months: { start: 5, end: 7 },
 }
+
+const PM012: Skill = {
+  id: 'PM012',
+  name: 'Controlled Release of Objects',
+  domain: 'physical_motor',
+  category: 'object_manipulation',
+  tier: 4,
+  row: 3,
+  requires: ['PM008'],
+  strengthens: ['PM015', 'PM019'],
+  milestone: false,
+  evidence: [
+    'Drops a toy into a container on purpose',
+    'Hands an object to a caregiver on request',
+    'Places an object down gently rather than just dropping it',
+  ],
+  typical_age_months: { start: 6, end: 9 },
+}
+
+// --- Tier 5 ----------------------------------------------------------------
 
 const PM015: Skill = {
   id: 'PM015',
   name: 'Pulling to Stand',
   domain: 'physical_motor',
   category: 'gross_motor',
-  tier: 4,
+  tier: 5,
+  row: 1,
   requires: ['PM013'],
   strengthens: ['PM017'],
   milestone: false,
@@ -331,31 +336,33 @@ const PM015: Skill = {
   typical_age_months: { start: 8, end: 11 },
 }
 
-const PM016: Skill = {
-  id: 'PM016',
-  name: 'Finger Feeding',
+const PM014: Skill = {
+  id: 'PM014',
+  name: 'Pincer Grasp',
   domain: 'physical_motor',
-  category: 'self_care',
-  tier: 4,
-  requires: ['PM014'],
-  strengthens: ['PM020'],
-  milestone: false,
+  category: 'fine_motor',
+  tier: 5,
+  row: 2,
+  requires: ['PM010', 'PM012'],
+  strengthens: ['PM019', 'PM020'],
+  milestone: true,
   evidence: [
-    'Picks up soft finger foods and brings to mouth independently',
-    'Releases food into mouth with control',
-    'Feeds themselves a full portion of soft finger food',
+    'Picks up a small piece of food using tip of thumb and index finger',
+    'Picks up a Cheerio or pea-sized object without raking motion',
+    'Points with isolated index finger',
   ],
-  typical_age_months: { start: 8, end: 12 },
+  typical_age_months: { start: 7, end: 10 },
 }
 
-// --- Tier 5 ----------------------------------------------------------------
+// --- Tier 6 ----------------------------------------------------------------
 
 const PM017: Skill = {
   id: 'PM017',
   name: 'Cruising Along Furniture',
   domain: 'physical_motor',
   category: 'gross_motor',
-  tier: 5,
+  tier: 6,
+  row: 1,
   requires: ['PM015'],
   strengthens: ['PM021'],
   milestone: false,
@@ -367,12 +374,31 @@ const PM017: Skill = {
   typical_age_months: { start: 9, end: 12 },
 }
 
+const PM016: Skill = {
+  id: 'PM016',
+  name: 'Finger Feeding',
+  domain: 'physical_motor',
+  category: 'self_care',
+  tier: 6,
+  row: 2,
+  requires: ['PM014'],
+  strengthens: ['PM020'],
+  milestone: false,
+  evidence: [
+    'Picks up soft finger foods and brings to mouth independently',
+    'Releases food into mouth with control',
+    'Feeds themselves a full portion of soft finger food',
+  ],
+  typical_age_months: { start: 8, end: 12 },
+}
+
 const PM018: Skill = {
   id: 'PM018',
   name: 'Block Stacking',
   domain: 'physical_motor',
   category: 'object_manipulation',
-  tier: 5,
+  tier: 6,
+  row: 3,
   requires: ['PM014', 'PM012'],
   strengthens: [],
   milestone: false,
@@ -384,29 +410,15 @@ const PM018: Skill = {
   typical_age_months: { start: 11, end: 18 },
 }
 
-const PM019: Skill = {
-  id: 'PM019',
-  name: 'Spoon Use',
-  domain: 'physical_motor',
-  category: 'self_care',
-  tier: 5,
-  requires: ['PM016'],
-  strengthens: ['PM024'],
-  milestone: false,
-  evidence: [
-    'Scoops food onto a spoon and brings it to mouth',
-    'Keeps food on spoon most of the time',
-    'Chooses spoon over hands for soft foods',
-  ],
-  typical_age_months: { start: 12, end: 18 },
-}
+// --- Tier 7 ----------------------------------------------------------------
 
 const PM020: Skill = {
   id: 'PM020',
   name: 'Standing Independently',
   domain: 'physical_motor',
   category: 'gross_motor',
-  tier: 5,
+  tier: 7,
+  row: 1,
   requires: ['PM017'],
   strengthens: ['PM021'],
   milestone: true,
@@ -418,14 +430,33 @@ const PM020: Skill = {
   typical_age_months: { start: 10, end: 13 },
 }
 
-// --- Tier 6 ----------------------------------------------------------------
+const PM019: Skill = {
+  id: 'PM019',
+  name: 'Spoon Use',
+  domain: 'physical_motor',
+  category: 'self_care',
+  tier: 7,
+  row: 2,
+  requires: ['PM016'],
+  strengthens: ['PM024'],
+  milestone: false,
+  evidence: [
+    'Scoops food onto a spoon and brings it to mouth',
+    'Keeps food on spoon most of the time',
+    'Chooses spoon over hands for soft foods',
+  ],
+  typical_age_months: { start: 12, end: 18 },
+}
+
+// --- Tier 8 ----------------------------------------------------------------
 
 const PM021: Skill = {
   id: 'PM021',
   name: 'Independent Walking',
   domain: 'physical_motor',
   category: 'gross_motor',
-  tier: 6,
+  tier: 8,
+  row: 1,
   requires: ['PM020'],
   strengthens: ['PM022', 'PM023'],
   milestone: true,
@@ -437,12 +468,33 @@ const PM021: Skill = {
   typical_age_months: { start: 9, end: 15 },
 }
 
+const PM024: Skill = {
+  id: 'PM024',
+  name: 'Self-Feeding with Utensils',
+  domain: 'physical_motor',
+  category: 'self_care',
+  tier: 8,
+  row: 2,
+  requires: ['PM019'],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Uses a spoon to eat a full meal with few spills',
+    'Drinks from an open cup with one hand without major spilling',
+    'Spears food with a fork independently',
+  ],
+  typical_age_months: { start: 18, end: 24 },
+}
+
+// --- Tier 9 ----------------------------------------------------------------
+
 const PM022: Skill = {
   id: 'PM022',
   name: 'Running',
   domain: 'physical_motor',
   category: 'gross_motor',
-  tier: 6,
+  tier: 9,
+  row: 1,
   requires: ['PM021'],
   strengthens: [],
   milestone: false,
@@ -459,7 +511,8 @@ const PM023: Skill = {
   name: 'Climbing',
   domain: 'physical_motor',
   category: 'gross_motor',
-  tier: 6,
+  tier: 9,
+  row: 2,
   requires: ['PM021'],
   strengthens: [],
   milestone: false,
@@ -471,25 +524,9 @@ const PM023: Skill = {
   typical_age_months: { start: 13, end: 20 },
 }
 
-const PM024: Skill = {
-  id: 'PM024',
-  name: 'Self-Feeding with Utensils',
-  domain: 'physical_motor',
-  category: 'self_care',
-  tier: 6,
-  requires: ['PM019'],
-  strengthens: [],
-  milestone: false,
-  evidence: [
-    'Uses a spoon to eat a full meal with few spills',
-    'Drinks from an open cup with one hand without major spilling',
-    'Spears food with a fork independently',
-  ],
-  typical_age_months: { start: 18, end: 24 },
-}
-
 // ===========================================================================
 // COGNITIVE  (CO001 – CO020)
+// 6 tiers
 // ===========================================================================
 
 // --- Tier 1 ----------------------------------------------------------------
@@ -500,6 +537,7 @@ const CO001: Skill = {
   domain: 'cognitive',
   category: 'attention',
   tier: 1,
+  row: 1,
   requires: [],
   strengthens: ['CO006', 'SE002'],
   milestone: false,
@@ -517,6 +555,7 @@ const CO002: Skill = {
   domain: 'cognitive',
   category: 'attention',
   tier: 1,
+  row: 2,
   requires: [],
   strengthens: ['CO005'],
   milestone: false,
@@ -534,6 +573,7 @@ const CO003: Skill = {
   domain: 'cognitive',
   category: 'causal_reasoning',
   tier: 1,
+  row: 3,
   requires: [],
   strengthens: ['CO005', 'CO007'],
   milestone: false,
@@ -551,6 +591,7 @@ const CO004: Skill = {
   domain: 'cognitive',
   category: 'memory',
   tier: 1,
+  row: 4,
   requires: [],
   strengthens: ['CO006'],
   milestone: false,
@@ -564,12 +605,49 @@ const CO004: Skill = {
 
 // --- Tier 2 ----------------------------------------------------------------
 
+const CO008: Skill = {
+  id: 'CO008',
+  name: 'Social Learning Through Observation',
+  domain: 'cognitive',
+  category: 'imitation',
+  tier: 2,
+  row: 1,
+  requires: ['CO001'],
+  strengthens: ['CO010'],
+  milestone: false,
+  evidence: [
+    'Watches a caregiver demonstrate an action with full attention',
+    'Looks toward where a caregiver is looking',
+    'Modifies own behavior after watching another person act',
+  ],
+  typical_age_months: { start: 3, end: 7 },
+}
+
+const CO007: Skill = {
+  id: 'CO007',
+  name: 'Sustained Attention',
+  domain: 'cognitive',
+  category: 'attention',
+  tier: 2,
+  row: 2,
+  requires: ['CO002'],
+  strengthens: ['CO009'],
+  milestone: false,
+  evidence: [
+    'Examines a single toy for 1+ minute without distraction',
+    'Watches a caregiver action through to completion',
+    'Returns attention to the same object after a brief interruption',
+  ],
+  typical_age_months: { start: 3, end: 6 },
+}
+
 const CO005: Skill = {
   id: 'CO005',
   name: 'Cause-and-Effect Learning',
   domain: 'cognitive',
   category: 'causal_reasoning',
   tier: 2,
+  row: 3,
   requires: ['CO003'],
   strengthens: ['CO009', 'CO011'],
   milestone: false,
@@ -587,6 +665,7 @@ const CO006: Skill = {
   domain: 'cognitive',
   category: 'memory',
   tier: 2,
+  row: 4,
   requires: ['CO004'],
   strengthens: ['CO012'],
   milestone: false,
@@ -598,58 +677,7 @@ const CO006: Skill = {
   typical_age_months: { start: 3, end: 6 },
 }
 
-const CO007: Skill = {
-  id: 'CO007',
-  name: 'Sustained Attention',
-  domain: 'cognitive',
-  category: 'attention',
-  tier: 2,
-  requires: ['CO002'],
-  strengthens: ['CO009'],
-  milestone: false,
-  evidence: [
-    'Examines a single toy for 1+ minute without distraction',
-    'Watches a caregiver action through to completion',
-    'Returns attention to the same object after a brief interruption',
-  ],
-  typical_age_months: { start: 3, end: 6 },
-}
-
-const CO008: Skill = {
-  id: 'CO008',
-  name: 'Social Learning Through Observation',
-  domain: 'cognitive',
-  category: 'imitation',
-  tier: 2,
-  requires: ['CO001'],
-  strengthens: ['CO010'],
-  milestone: false,
-  evidence: [
-    'Watches a caregiver demonstrate an action with full attention',
-    'Looks toward where a caregiver is looking',
-    'Modifies own behavior after watching another person act',
-  ],
-  typical_age_months: { start: 3, end: 7 },
-}
-
 // --- Tier 3 ----------------------------------------------------------------
-
-const CO009: Skill = {
-  id: 'CO009',
-  name: 'Object Permanence',
-  domain: 'cognitive',
-  category: 'memory',
-  tier: 3,
-  requires: ['CO007', 'CO005'],
-  strengthens: ['CO014', 'CO013'],
-  milestone: true,
-  evidence: [
-    'Looks for a toy that has been hidden under a cloth',
-    'Reaches behind a screen for a toy they watched being placed there',
-    'Protests when a toy is removed and hidden instead of being distracted',
-  ],
-  typical_age_months: { start: 6, end: 10 },
-}
 
 const CO010: Skill = {
   id: 'CO010',
@@ -657,6 +685,7 @@ const CO010: Skill = {
   domain: 'cognitive',
   category: 'imitation',
   tier: 3,
+  row: 1,
   requires: ['CO008'],
   strengthens: ['CO016'],
   milestone: false,
@@ -668,12 +697,31 @@ const CO010: Skill = {
   typical_age_months: { start: 6, end: 9 },
 }
 
+const CO009: Skill = {
+  id: 'CO009',
+  name: 'Object Permanence',
+  domain: 'cognitive',
+  category: 'memory',
+  tier: 3,
+  row: 2,
+  requires: ['CO007', 'CO005'],
+  strengthens: ['CO014', 'CO013'],
+  milestone: true,
+  evidence: [
+    'Looks for a toy that has been hidden under a cloth',
+    'Reaches behind a screen for a toy they watched being placed there',
+    'Protests when a toy is removed and hidden instead of being distracted',
+  ],
+  typical_age_months: { start: 6, end: 10 },
+}
+
 const CO011: Skill = {
   id: 'CO011',
   name: 'Goal-Directed Actions',
   domain: 'cognitive',
   category: 'problem_solving',
   tier: 3,
+  row: 3,
   requires: ['CO005'],
   strengthens: ['CO013', 'CO014'],
   milestone: false,
@@ -685,75 +733,7 @@ const CO011: Skill = {
   typical_age_months: { start: 6, end: 9 },
 }
 
-const CO012: Skill = {
-  id: 'CO012',
-  name: 'Search Behavior',
-  domain: 'cognitive',
-  category: 'memory',
-  tier: 3,
-  requires: ['CO009'],
-  strengthens: ['CO014'],
-  milestone: false,
-  evidence: [
-    'Searches in a second hiding place if the first is empty',
-    'Looks for an object in the location where it was last seen',
-    'Lifts multiple covers to find a hidden toy',
-  ],
-  typical_age_months: { start: 7, end: 10 },
-}
-
 // --- Tier 4 ----------------------------------------------------------------
-
-const CO013: Skill = {
-  id: 'CO013',
-  name: 'Trial-and-Error Problem Solving',
-  domain: 'cognitive',
-  category: 'problem_solving',
-  tier: 4,
-  requires: ['CO011'],
-  strengthens: ['CO015'],
-  milestone: false,
-  evidence: [
-    'Tries several strategies to get a toy out of a container',
-    'Adjusts approach after a failed attempt without adult help',
-    'Discovers a shape sorter solution through repeated attempts',
-  ],
-  typical_age_months: { start: 9, end: 13 },
-}
-
-const CO014: Skill = {
-  id: 'CO014',
-  name: 'Means-End Understanding',
-  domain: 'cognitive',
-  category: 'causal_reasoning',
-  tier: 4,
-  requires: ['CO012'],
-  strengthens: ['CO015'],
-  milestone: false,
-  evidence: [
-    'Pulls a string to bring a toy within reach',
-    'Uses a stick or tool to knock an object closer',
-    'Stacks objects to reach something placed up high',
-  ],
-  typical_age_months: { start: 9, end: 12 },
-}
-
-const CO015: Skill = {
-  id: 'CO015',
-  name: 'Sequence Understanding',
-  domain: 'cognitive',
-  category: 'memory',
-  tier: 4,
-  requires: ['CO006'],
-  strengthens: ['CO017'],
-  milestone: false,
-  evidence: [
-    'Anticipates the next step in a familiar multi-step routine',
-    'Completes a familiar 2-step action sequence independently',
-    'Protests when a familiar sequence is done out of order',
-  ],
-  typical_age_months: { start: 9, end: 13 },
-}
 
 const CO016: Skill = {
   id: 'CO016',
@@ -761,6 +741,7 @@ const CO016: Skill = {
   domain: 'cognitive',
   category: 'imitation',
   tier: 4,
+  row: 1,
   requires: ['CO010'],
   strengthens: ['CO018'],
   milestone: false,
@@ -772,14 +753,31 @@ const CO016: Skill = {
   typical_age_months: { start: 9, end: 15 },
 }
 
-// --- Tier 5 ----------------------------------------------------------------
+const CO012: Skill = {
+  id: 'CO012',
+  name: 'Search Behavior',
+  domain: 'cognitive',
+  category: 'memory',
+  tier: 4,
+  row: 2,
+  requires: ['CO009'],
+  strengthens: ['CO014'],
+  milestone: false,
+  evidence: [
+    'Searches in a second hiding place if the first is empty',
+    'Looks for an object in the location where it was last seen',
+    'Lifts multiple covers to find a hidden toy',
+  ],
+  typical_age_months: { start: 7, end: 10 },
+}
 
 const CO017: Skill = {
   id: 'CO017',
   name: 'Simple Categorization',
   domain: 'cognitive',
   category: 'symbolic',
-  tier: 5,
+  tier: 4,
+  row: 3,
   requires: ['CO009'],
   strengthens: [],
   milestone: false,
@@ -791,22 +789,43 @@ const CO017: Skill = {
   typical_age_months: { start: 12, end: 18 },
 }
 
-const CO018: Skill = {
-  id: 'CO018',
-  name: 'Tool Use for Goals',
+const CO015: Skill = {
+  id: 'CO015',
+  name: 'Sequence Understanding',
   domain: 'cognitive',
-  category: 'problem_solving',
-  tier: 5,
-  requires: ['CO014'],
-  strengthens: [],
+  category: 'memory',
+  tier: 4,
+  row: 4,
+  requires: ['CO006'],
+  strengthens: ['CO017'],
   milestone: false,
   evidence: [
-    'Uses a spoon or stick to reach an object they cannot grasp directly',
-    'Climbs on a stool to reach something on a high surface',
-    'Selects the correct tool for a task from two options',
+    'Anticipates the next step in a familiar multi-step routine',
+    'Completes a familiar 2-step action sequence independently',
+    'Protests when a familiar sequence is done out of order',
   ],
-  typical_age_months: { start: 12, end: 18 },
+  typical_age_months: { start: 9, end: 13 },
 }
+
+const CO013: Skill = {
+  id: 'CO013',
+  name: 'Trial-and-Error Problem Solving',
+  domain: 'cognitive',
+  category: 'problem_solving',
+  tier: 4,
+  row: 5,
+  requires: ['CO011'],
+  strengthens: ['CO015'],
+  milestone: false,
+  evidence: [
+    'Tries several strategies to get a toy out of a container',
+    'Adjusts approach after a failed attempt without adult help',
+    'Discovers a shape sorter solution through repeated attempts',
+  ],
+  typical_age_months: { start: 9, end: 13 },
+}
+
+// --- Tier 5 ----------------------------------------------------------------
 
 const CO019: Skill = {
   id: 'CO019',
@@ -814,6 +833,7 @@ const CO019: Skill = {
   domain: 'cognitive',
   category: 'symbolic',
   tier: 5,
+  row: 1,
   requires: ['CO016'],
   strengthens: ['CO020'],
   milestone: true,
@@ -825,12 +845,33 @@ const CO019: Skill = {
   typical_age_months: { start: 14, end: 20 },
 }
 
+const CO014: Skill = {
+  id: 'CO014',
+  name: 'Means-End Understanding',
+  domain: 'cognitive',
+  category: 'causal_reasoning',
+  tier: 5,
+  row: 2,
+  requires: ['CO012'],
+  strengthens: ['CO015'],
+  milestone: false,
+  evidence: [
+    'Pulls a string to bring a toy within reach',
+    'Uses a stick or tool to knock an object closer',
+    'Stacks objects to reach something placed up high',
+  ],
+  typical_age_months: { start: 9, end: 12 },
+}
+
+// --- Tier 6 ----------------------------------------------------------------
+
 const CO020: Skill = {
   id: 'CO020',
   name: 'Pretend Play',
   domain: 'cognitive',
   category: 'symbolic',
-  tier: 5,
+  tier: 6,
+  row: 1,
   requires: ['CO019'],
   strengthens: [],
   milestone: true,
@@ -842,8 +883,27 @@ const CO020: Skill = {
   typical_age_months: { start: 16, end: 24 },
 }
 
+const CO018: Skill = {
+  id: 'CO018',
+  name: 'Tool Use for Goals',
+  domain: 'cognitive',
+  category: 'problem_solving',
+  tier: 6,
+  row: 2,
+  requires: ['CO014'],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Uses a spoon or stick to reach an object they cannot grasp directly',
+    'Climbs on a stool to reach something on a high surface',
+    'Selects the correct tool for a task from two options',
+  ],
+  typical_age_months: { start: 12, end: 18 },
+}
+
 // ===========================================================================
 // LANGUAGE & COMMUNICATION  (LC001 – LC020)
+// 6 tiers
 // ===========================================================================
 
 // --- Tier 1 ----------------------------------------------------------------
@@ -854,6 +914,7 @@ const LC001: Skill = {
   domain: 'language_communication',
   category: 'receptive_language',
   tier: 1,
+  row: 1,
   requires: [],
   strengthens: ['LC005', 'LC008'],
   milestone: false,
@@ -871,6 +932,7 @@ const LC002: Skill = {
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 1,
+  row: 2,
   requires: [],
   strengthens: ['LC006'],
   milestone: true,
@@ -888,6 +950,7 @@ const LC003: Skill = {
   domain: 'language_communication',
   category: 'expressive_language',
   tier: 1,
+  row: 3,
   requires: [],
   strengthens: ['LC009'],
   milestone: false,
@@ -905,6 +968,7 @@ const LC004: Skill = {
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 1,
+  row: 4,
   requires: [],
   strengthens: ['LC006'],
   milestone: false,
@@ -918,12 +982,31 @@ const LC004: Skill = {
 
 // --- Tier 2 ----------------------------------------------------------------
 
+const LC008: Skill = {
+  id: 'LC008',
+  name: 'Sound Discrimination',
+  domain: 'language_communication',
+  category: 'receptive_language',
+  tier: 2,
+  row: 1,
+  requires: ['LC001'],
+  strengthens: ['LC010'],
+  milestone: false,
+  evidence: [
+    'Reacts differently to their own name versus other names',
+    'Startles to a sudden loud sound but not a repeated quiet one',
+    'Turns more reliably toward the language they hear most at home',
+  ],
+  typical_age_months: { start: 3, end: 6 },
+}
+
 const LC005: Skill = {
   id: 'LC005',
   name: 'Cooing',
   domain: 'language_communication',
   category: 'vocalization',
   tier: 2,
+  row: 2,
   requires: ['LC001'],
   strengthens: ['LC009'],
   milestone: false,
@@ -935,29 +1018,13 @@ const LC005: Skill = {
   typical_age_months: { start: 2, end: 4 },
 }
 
-const LC006: Skill = {
-  id: 'LC006',
-  name: 'Vocal Play',
-  domain: 'language_communication',
-  category: 'vocalization',
-  tier: 2,
-  requires: ['LC004'],
-  strengthens: ['LC009'],
-  milestone: false,
-  evidence: [
-    'Produces raspberries, squeals, and growls for fun',
-    'Experiments with loud vs soft and high vs low sounds',
-    'Vocalizes during solo play without a social prompt',
-  ],
-  typical_age_months: { start: 3, end: 6 },
-}
-
 const LC007: Skill = {
   id: 'LC007',
   name: 'Joint Attention',
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 2,
+  row: 3,
   // Note: requires SE003 (Social Smiling) — cross-domain dependency
   requires: ['LC002', 'SE003'],
   strengthens: ['LC011', 'LC012'],
@@ -970,41 +1037,25 @@ const LC007: Skill = {
   typical_age_months: { start: 4, end: 8 },
 }
 
-const LC008: Skill = {
-  id: 'LC008',
-  name: 'Sound Discrimination',
+const LC006: Skill = {
+  id: 'LC006',
+  name: 'Vocal Play',
   domain: 'language_communication',
-  category: 'receptive_language',
+  category: 'vocalization',
   tier: 2,
-  requires: ['LC001'],
-  strengthens: ['LC010'],
+  row: 4,
+  requires: ['LC004'],
+  strengthens: ['LC009'],
   milestone: false,
   evidence: [
-    'Reacts differently to their own name versus other names',
-    'Startles to a sudden loud sound but not a repeated quiet one',
-    'Turns more reliably toward the language they hear most at home',
+    'Produces raspberries, squeals, and growls for fun',
+    'Experiments with loud vs soft and high vs low sounds',
+    'Vocalizes during solo play without a social prompt',
   ],
   typical_age_months: { start: 3, end: 6 },
 }
 
 // --- Tier 3 ----------------------------------------------------------------
-
-const LC009: Skill = {
-  id: 'LC009',
-  name: 'Canonical Babbling',
-  domain: 'language_communication',
-  category: 'vocalization',
-  tier: 3,
-  requires: ['LC005', 'LC006'],
-  strengthens: ['LC013'],
-  milestone: true,
-  evidence: [
-    'Produces reduplicated syllable strings: "bababa", "mamama", "dadada"',
-    'Babbles with varied intonation resembling conversational speech',
-    'Uses babble during social exchanges as if conversing',
-  ],
-  typical_age_months: { start: 5, end: 8 },
-}
 
 const LC010: Skill = {
   id: 'LC010',
@@ -1012,6 +1063,7 @@ const LC010: Skill = {
   domain: 'language_communication',
   category: 'receptive_language',
   tier: 3,
+  row: 1,
   requires: ['LC008'],
   strengthens: ['LC011'],
   milestone: false,
@@ -1029,6 +1081,7 @@ const LC011: Skill = {
   domain: 'language_communication',
   category: 'receptive_language',
   tier: 3,
+  row: 2,
   requires: ['LC007'],
   strengthens: ['LC014'],
   milestone: false,
@@ -1046,6 +1099,7 @@ const LC012: Skill = {
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 3,
+  row: 3,
   requires: ['LC007'],
   strengthens: ['LC013', 'LC015'],
   milestone: false,
@@ -1057,7 +1111,43 @@ const LC012: Skill = {
   typical_age_months: { start: 6, end: 10 },
 }
 
+const LC009: Skill = {
+  id: 'LC009',
+  name: 'Canonical Babbling',
+  domain: 'language_communication',
+  category: 'vocalization',
+  tier: 3,
+  row: 4,
+  requires: ['LC005', 'LC006'],
+  strengthens: ['LC013'],
+  milestone: true,
+  evidence: [
+    'Produces reduplicated syllable strings: "bababa", "mamama", "dadada"',
+    'Babbles with varied intonation resembling conversational speech',
+    'Uses babble during social exchanges as if conversing',
+  ],
+  typical_age_months: { start: 5, end: 8 },
+}
+
 // --- Tier 4 ----------------------------------------------------------------
+
+const LC015: Skill = {
+  id: 'LC015',
+  name: 'Following Simple Instructions',
+  domain: 'language_communication',
+  category: 'receptive_language',
+  tier: 4,
+  row: 1,
+  requires: ['LC011'],
+  strengthens: ['LC018'],
+  milestone: false,
+  evidence: [
+    'Follows a one-step instruction without gesture cue ("get your shoes")',
+    'Retrieves a named object from another room',
+    'Follows two different one-step instructions in sequence',
+  ],
+  typical_age_months: { start: 9, end: 14 },
+}
 
 const LC013: Skill = {
   id: 'LC013',
@@ -1065,6 +1155,7 @@ const LC013: Skill = {
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 4,
+  row: 2,
   requires: ['LC012'],
   strengthens: ['LC016'],
   milestone: true,
@@ -1082,6 +1173,7 @@ const LC014: Skill = {
   domain: 'language_communication',
   category: 'expressive_language',
   tier: 4,
+  row: 3,
   requires: ['LC009', 'LC011'],
   strengthens: ['LC016', 'LC017'],
   milestone: true,
@@ -1093,29 +1185,15 @@ const LC014: Skill = {
   typical_age_months: { start: 9, end: 14 },
 }
 
-const LC015: Skill = {
-  id: 'LC015',
-  name: 'Following Simple Instructions',
-  domain: 'language_communication',
-  category: 'receptive_language',
-  tier: 4,
-  requires: ['LC011'],
-  strengthens: ['LC018'],
-  milestone: false,
-  evidence: [
-    'Follows a one-step instruction without gesture cue ("get your shoes")',
-    'Retrieves a named object from another room',
-    'Follows two different one-step instructions in sequence',
-  ],
-  typical_age_months: { start: 9, end: 14 },
-}
+// --- Tier 5 ----------------------------------------------------------------
 
 const LC016: Skill = {
   id: 'LC016',
   name: 'Intentional Communication',
   domain: 'language_communication',
   category: 'pragmatics',
-  tier: 4,
+  tier: 5,
+  row: 1,
   requires: ['LC012', 'LC014'],
   strengthens: ['LC018'],
   milestone: false,
@@ -1127,14 +1205,13 @@ const LC016: Skill = {
   typical_age_months: { start: 9, end: 14 },
 }
 
-// --- Tier 5 ----------------------------------------------------------------
-
 const LC017: Skill = {
   id: 'LC017',
   name: 'Vocabulary Expansion',
   domain: 'language_communication',
   category: 'expressive_language',
   tier: 5,
+  row: 2,
   requires: ['LC014'],
   strengthens: ['LC018'],
   milestone: false,
@@ -1146,29 +1223,13 @@ const LC017: Skill = {
   typical_age_months: { start: 12, end: 18 },
 }
 
-const LC018: Skill = {
-  id: 'LC018',
-  name: 'Two-Word Combinations',
-  domain: 'language_communication',
-  category: 'expressive_language',
-  tier: 5,
-  requires: ['LC017'],
-  strengthens: [],
-  milestone: true,
-  evidence: [
-    'Spontaneously combines two words ("more milk", "daddy go")',
-    'Uses combinations to comment, request, or describe',
-    'Produces 3+ different two-word phrases regularly',
-  ],
-  typical_age_months: { start: 18, end: 24 },
-}
-
 const LC019: Skill = {
   id: 'LC019',
   name: 'Following Two-Step Directions',
   domain: 'language_communication',
   category: 'receptive_language',
   tier: 5,
+  row: 3,
   requires: ['LC015'],
   strengthens: [],
   milestone: false,
@@ -1180,12 +1241,15 @@ const LC019: Skill = {
   typical_age_months: { start: 18, end: 24 },
 }
 
+// --- Tier 6 ----------------------------------------------------------------
+
 const LC020: Skill = {
   id: 'LC020',
   name: 'Early Conversational Exchange',
   domain: 'language_communication',
   category: 'pragmatics',
-  tier: 5,
+  tier: 6,
+  row: 1,
   requires: ['LC016'],
   strengthens: [],
   milestone: false,
@@ -1197,8 +1261,27 @@ const LC020: Skill = {
   typical_age_months: { start: 18, end: 24 },
 }
 
+const LC018: Skill = {
+  id: 'LC018',
+  name: 'Two-Word Combinations',
+  domain: 'language_communication',
+  category: 'expressive_language',
+  tier: 6,
+  row: 2,
+  requires: ['LC017'],
+  strengthens: [],
+  milestone: true,
+  evidence: [
+    'Spontaneously combines two words ("more milk", "daddy go")',
+    'Uses combinations to comment, request, or describe',
+    'Produces 3+ different two-word phrases regularly',
+  ],
+  typical_age_months: { start: 18, end: 24 },
+}
+
 // ===========================================================================
 // SOCIAL & EMOTIONAL  (SE001 – SE020)
+// 7 tiers
 // ===========================================================================
 
 // --- Tier 1 ----------------------------------------------------------------
@@ -1209,6 +1292,7 @@ const SE001: Skill = {
   domain: 'social_emotional',
   category: 'social_bonding',
   tier: 1,
+  row: 1,
   requires: [],
   strengthens: ['SE006'],
   milestone: false,
@@ -1226,6 +1310,7 @@ const SE002: Skill = {
   domain: 'social_emotional',
   category: 'emotional_regulation',
   tier: 1,
+  row: 2,
   requires: [],
   strengthens: ['SE005', 'SE007'],
   milestone: false,
@@ -1244,6 +1329,7 @@ const SE003: Skill = {
   domain: 'social_emotional',
   category: 'social_bonding',
   tier: 1,
+  row: 3,
   requires: [],
   strengthens: ['SE006', 'LC007'],
   milestone: true,
@@ -1261,6 +1347,7 @@ const SE004: Skill = {
   domain: 'social_emotional',
   category: 'emotional_expression',
   tier: 1,
+  row: 4,
   requires: [],
   strengthens: ['SE008'],
   milestone: false,
@@ -1274,29 +1361,13 @@ const SE004: Skill = {
 
 // --- Tier 2 ----------------------------------------------------------------
 
-const SE005: Skill = {
-  id: 'SE005',
-  name: 'Preference for Familiar Caregivers',
-  domain: 'social_emotional',
-  category: 'social_bonding',
-  tier: 2,
-  requires: ['SE002'],
-  strengthens: ['SE007'],
-  milestone: false,
-  evidence: [
-    'Reaches specifically toward a familiar caregiver when upset',
-    'Calms faster with a familiar person than with a stranger',
-    'Shows selective brightening only for known people',
-  ],
-  typical_age_months: { start: 2, end: 6 },
-}
-
 const SE006: Skill = {
   id: 'SE006',
   name: 'Reciprocal Interaction',
   domain: 'social_emotional',
   category: 'social_interaction',
   tier: 2,
+  row: 1,
   requires: ['SE001', 'SE003'],
   strengthens: ['SE011', 'SE014'],
   milestone: false,
@@ -1308,21 +1379,22 @@ const SE006: Skill = {
   typical_age_months: { start: 2, end: 5 },
 }
 
-const SE007: Skill = {
-  id: 'SE007',
-  name: 'Attachment Formation',
+const SE005: Skill = {
+  id: 'SE005',
+  name: 'Preference for Familiar Caregivers',
   domain: 'social_emotional',
   category: 'social_bonding',
   tier: 2,
-  requires: ['SE005'],
-  strengthens: ['SE009', 'SE010', 'SE012'],
-  milestone: true,
+  row: 2,
+  requires: ['SE002'],
+  strengthens: ['SE007'],
+  milestone: false,
   evidence: [
-    'Shows clear preference for primary caregiver over all others',
-    'Uses caregiver as a safe base to explore from and return to',
-    'Protests when primary caregiver leaves the room',
+    'Reaches specifically toward a familiar caregiver when upset',
+    'Calms faster with a familiar person than with a stranger',
+    'Shows selective brightening only for known people',
   ],
-  typical_age_months: { start: 4, end: 8 },
+  typical_age_months: { start: 2, end: 6 },
 }
 
 const SE008: Skill = {
@@ -1331,6 +1403,7 @@ const SE008: Skill = {
   domain: 'social_emotional',
   category: 'emotional_expression',
   tier: 2,
+  row: 3,
   requires: ['SE004'],
   strengthens: ['SE013'],
   milestone: false,
@@ -1344,12 +1417,69 @@ const SE008: Skill = {
 
 // --- Tier 3 ----------------------------------------------------------------
 
+const SE011: Skill = {
+  id: 'SE011',
+  name: 'Social Referencing',
+  domain: 'social_emotional',
+  category: 'social_interaction',
+  tier: 3,
+  row: 1,
+  requires: ['SE006'],
+  strengthens: ['SE013'],
+  milestone: false,
+  evidence: [
+    'Looks to caregiver\'s face before touching an unfamiliar object',
+    'Adjusts approach to a new situation based on caregiver\'s expression',
+    'Moves toward or away from a novel stimulus based on caregiver reaction',
+  ],
+  typical_age_months: { start: 7, end: 10 },
+}
+
+const SE007: Skill = {
+  id: 'SE007',
+  name: 'Attachment Formation',
+  domain: 'social_emotional',
+  category: 'social_bonding',
+  tier: 3,
+  row: 2,
+  requires: ['SE005'],
+  strengthens: ['SE009', 'SE010', 'SE012'],
+  milestone: true,
+  evidence: [
+    'Shows clear preference for primary caregiver over all others',
+    'Uses caregiver as a safe base to explore from and return to',
+    'Protests when primary caregiver leaves the room',
+  ],
+  typical_age_months: { start: 4, end: 8 },
+}
+
+const SE014: Skill = {
+  id: 'SE014',
+  name: 'Social Imitation',
+  domain: 'social_emotional',
+  category: 'social_interaction',
+  tier: 3,
+  row: 3,
+  requires: ['SE006'],
+  strengthens: ['SE015', 'SE019'],
+  milestone: false,
+  evidence: [
+    'Copies simple actions like clapping or banging a drum after watching',
+    'Imitates a playful behavior to re-engage an adult',
+    'Mirrors another person\'s facial expression deliberately',
+  ],
+  typical_age_months: { start: 8, end: 12 },
+}
+
+// --- Tier 4 ----------------------------------------------------------------
+
 const SE009: Skill = {
   id: 'SE009',
   name: 'Stranger Wariness',
   domain: 'social_emotional',
   category: 'social_bonding',
-  tier: 3,
+  tier: 4,
+  row: 1,
   requires: ['SE007'],
   strengthens: [],
   milestone: false,
@@ -1366,7 +1496,8 @@ const SE010: Skill = {
   name: 'Separation Awareness',
   domain: 'social_emotional',
   category: 'emotional_regulation',
-  tier: 3,
+  tier: 4,
+  row: 2,
   requires: ['SE007'],
   strengthens: ['SE016'],
   milestone: false,
@@ -1378,29 +1509,13 @@ const SE010: Skill = {
   typical_age_months: { start: 6, end: 10 },
 }
 
-const SE011: Skill = {
-  id: 'SE011',
-  name: 'Social Referencing',
-  domain: 'social_emotional',
-  category: 'social_interaction',
-  tier: 3,
-  requires: ['SE006'],
-  strengthens: ['SE013'],
-  milestone: false,
-  evidence: [
-    'Looks to caregiver\'s face before touching an unfamiliar object',
-    'Adjusts approach to a new situation based on caregiver\'s expression',
-    'Moves toward or away from a novel stimulus based on caregiver reaction',
-  ],
-  typical_age_months: { start: 7, end: 10 },
-}
-
 const SE012: Skill = {
   id: 'SE012',
   name: 'Seeking Caregiver Support',
   domain: 'social_emotional',
   category: 'emotional_regulation',
-  tier: 3,
+  tier: 4,
+  row: 3,
   requires: ['SE007'],
   strengthens: ['SE013'],
   milestone: false,
@@ -1412,48 +1527,13 @@ const SE012: Skill = {
   typical_age_months: { start: 6, end: 10 },
 }
 
-// --- Tier 4 ----------------------------------------------------------------
-
-const SE013: Skill = {
-  id: 'SE013',
-  name: 'Emotional Co-Regulation',
-  domain: 'social_emotional',
-  category: 'emotional_regulation',
-  tier: 4,
-  requires: ['SE012', 'SE011'],
-  strengthens: ['SE015'],
-  milestone: false,
-  evidence: [
-    'Uses a caregiver\'s calming presence to recover from distress',
-    'Accepts comfort strategies (rocking, words) to calm down',
-    'Recovery from upset is faster when caregiver is present vs absent',
-  ],
-  typical_age_months: { start: 9, end: 14 },
-}
-
-const SE014: Skill = {
-  id: 'SE014',
-  name: 'Social Imitation',
-  domain: 'social_emotional',
-  category: 'social_interaction',
-  tier: 4,
-  requires: ['SE006'],
-  strengthens: ['SE015', 'SE019'],
-  milestone: false,
-  evidence: [
-    'Copies simple actions like clapping or banging a drum after watching',
-    'Imitates a playful behavior to re-engage an adult',
-    'Mirrors another person\'s facial expression deliberately',
-  ],
-  typical_age_months: { start: 8, end: 12 },
-}
-
 const SE015: Skill = {
   id: 'SE015',
   name: 'Shared Enjoyment',
   domain: 'social_emotional',
   category: 'social_interaction',
   tier: 4,
+  row: 4,
   requires: ['SE014'],
   strengthens: ['SE017'],
   milestone: false,
@@ -1465,12 +1545,33 @@ const SE015: Skill = {
   typical_age_months: { start: 8, end: 12 },
 }
 
+// --- Tier 5 ----------------------------------------------------------------
+
+const SE013: Skill = {
+  id: 'SE013',
+  name: 'Emotional Co-Regulation',
+  domain: 'social_emotional',
+  category: 'emotional_regulation',
+  tier: 5,
+  row: 1,
+  requires: ['SE012', 'SE011'],
+  strengthens: ['SE015'],
+  milestone: false,
+  evidence: [
+    'Uses a caregiver\'s calming presence to recover from distress',
+    'Accepts comfort strategies (rocking, words) to calm down',
+    'Recovery from upset is faster when caregiver is present vs absent',
+  ],
+  typical_age_months: { start: 9, end: 14 },
+}
+
 const SE016: Skill = {
   id: 'SE016',
   name: 'Emerging Self-Awareness',
   domain: 'social_emotional',
   category: 'self_awareness',
-  tier: 4,
+  tier: 5,
+  row: 2,
   requires: ['SE010'],
   strengthens: ['SE018'],
   milestone: false,
@@ -1482,14 +1583,33 @@ const SE016: Skill = {
   typical_age_months: { start: 12, end: 20 },
 }
 
-// --- Tier 5 ----------------------------------------------------------------
+const SE020: Skill = {
+  id: 'SE020',
+  name: 'Simple Peer Interaction',
+  domain: 'social_emotional',
+  category: 'social_interaction',
+  tier: 5,
+  row: 3,
+  requires: ['SE014', 'SE015'],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Offers a toy to another child (even if briefly)',
+    'Copies what another child is doing during parallel play',
+    'Laughs in response to another child\'s laughter',
+  ],
+  typical_age_months: { start: 16, end: 24 },
+}
+
+// --- Tier 6 ----------------------------------------------------------------
 
 const SE017: Skill = {
   id: 'SE017',
   name: 'Early Empathy',
   domain: 'social_emotional',
   category: 'emotional_expression',
-  tier: 5,
+  tier: 6,
+  row: 1,
   requires: ['SE015', 'SE013'],
   strengthens: [],
   milestone: false,
@@ -1506,7 +1626,8 @@ const SE018: Skill = {
   name: 'Preference Expression',
   domain: 'social_emotional',
   category: 'self_awareness',
-  tier: 5,
+  tier: 6,
+  row: 2,
   requires: ['SE016'],
   strengthens: ['SE019'],
   milestone: false,
@@ -1518,12 +1639,15 @@ const SE018: Skill = {
   typical_age_months: { start: 12, end: 18 },
 }
 
+// --- Tier 7 ----------------------------------------------------------------
+
 const SE019: Skill = {
   id: 'SE019',
   name: 'Autonomy Seeking',
   domain: 'social_emotional',
   category: 'self_awareness',
-  tier: 5,
+  tier: 7,
+  row: 1,
   requires: ['SE018'],
   strengthens: [],
   milestone: false,
@@ -1533,23 +1657,6 @@ const SE019: Skill = {
     'Persists at a self-chosen task despite difficulty',
   ],
   typical_age_months: { start: 18, end: 24 },
-}
-
-const SE020: Skill = {
-  id: 'SE020',
-  name: 'Simple Peer Interaction',
-  domain: 'social_emotional',
-  category: 'social_interaction',
-  tier: 5,
-  requires: ['SE014', 'SE015'],
-  strengthens: [],
-  milestone: false,
-  evidence: [
-    'Offers a toy to another child (even if briefly)',
-    'Copies what another child is doing during parallel play',
-    'Laughs in response to another child\'s laughter',
-  ],
-  typical_age_months: { start: 16, end: 24 },
 }
 
 // ===========================================================================
