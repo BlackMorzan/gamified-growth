@@ -248,7 +248,7 @@ const PM008: Skill = {
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 3,
-  row: 3,
+  row: 4,
   requires: ['PM006', 'PM003'],
   strengthens: ['PM011', 'PM012'],
   milestone: false,
