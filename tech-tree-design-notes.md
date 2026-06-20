@@ -32,11 +32,11 @@ Each milestone depends on the previous one. Sections below are the reference det
 - [x] Hand-author `tier`/`row` for all 84 skills (PM×24, CO×20, LC×20, SE×20), scoped per-domain. This is a real authoring task — block out time for it. Values are integers; rows start at 1 per domain, tiers start at 1 per domain.
 
 **M2 — Stores**
-- [ ] `useProfileStore` first (prerequisite for the tech tree store): owns the `PersistedUserData` blob in `localStorage`, exposes `profile`, `acquired`, `acquire(skillId, date)`, `unacquire(skillId)`, and `prevSessionAvailableIds` (see New-badge mechanism below).
-- [ ] `useTechTreeStore`: `acquiredIds`, `progressOf`, `acquiredDateOf`, `edges`, `newlyAvailableIds` (see Store section). Import `skillById` from `src/data/skills.ts` — do not recompute it.
-- [ ] Unit test: `progressOf` returns correct state given a fixture `requires[]` + `acquired[]`.
-- [ ] Unit test: `edges` only derives from `requires[]`, never `strengthens[]`.
-- [ ] Unit test: `newlyAvailableIds` returns skills that are `available` this session but were not in `prevSessionAvailableIds`.
+- [x] `useProfileStore` first (prerequisite for the tech tree store): owns the `PersistedUserData` blob in `localStorage`, exposes `profile`, `acquired`, `acquire(skillId, date)`, `unacquire(skillId)`, and `prevSessionAvailableIds` (see New-badge mechanism below).
+- [x] `useTechTreeStore`: `acquiredIds`, `progressOf`, `acquiredDateOf`, `edges`, `newlyAvailableIds` (see Store section). Import `skillById` from `src/data/skills.ts` — do not recompute it.
+- [x] Unit test: `progressOf` returns correct state given a fixture `requires[]` + `acquired[]`.
+- [x] Unit test: `edges` only derives from `requires[]`, never `strengthens[]`.
+- [x] Unit test: `newlyAvailableIds` returns skills that are `available` this session but were not in `prevSessionAvailableIds`.
 
 **M3 — Render one tree (no nav yet)**
 - [ ] Add route `/tree` → `SkillTreeView.vue` in `src/router/index.ts`. Add a nav link from `HomeView` for now.
