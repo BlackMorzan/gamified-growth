@@ -9,9 +9,30 @@ const props = defineProps<{
   progress: 'locked' | 'available' | 'acquired'
 }>()
 
-const d = computed(() => {  
-  const mid = (props.x1 + props.x2) / 2
-  return `M ${props.x1},${props.y1} C ${mid},${props.y1} ${mid},${props.y2} ${props.x2},${props.y2}`
+const d = computed(() => {
+  const dx = props.x2 - props.x1
+  const dy = props.y2 - props.y1
+
+  const radius = 12 // fixed corner radius, same for every connector
+  const direction = dx >= 0 ? 1 : -1 // handle right-to-left edges
+  const vDirection = dy >= 0 ? 1 : -1 // handle upward vs downward edges
+
+  // midpoint where the vertical segment sits
+  const midX = (props.x1 + props.x2) / 2
+
+  // if nodes are basically level, just draw a straight line
+  if (Math.abs(dy) < 1) {
+    return `M ${props.x1},${props.y1} L ${props.x2},${props.y2}`
+  }
+
+  return `
+    M ${props.x1},${props.y1}
+    L ${midX - radius * direction},${props.y1}
+    Q ${midX},${props.y1} ${midX},${props.y1 + radius * vDirection}
+    L ${midX},${props.y2 - radius * vDirection}
+    Q ${midX},${props.y2} ${midX + radius * direction},${props.y2}
+    L ${props.x2},${props.y2}
+  `.trim().replace(/\s+/g, ' ')
 })
 </script>
 
