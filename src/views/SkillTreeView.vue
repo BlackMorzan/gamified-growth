@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import TechTree from '@/components/TechTree.vue'
+import SkillDomainTabs from '@/components/SkillDomainTabs.vue'
 </script>
 
 <template>
   <main class="tree-view">
     <header class="tree-header">
       <RouterLink to="/" class="back-link">← Home</RouterLink>
-      <h1 class="tree-title">Physical &amp; Motor</h1>
+      <h1 class="tree-title">Skill Tree</h1>
     </header>
-    <TechTree domain="physical_motor" />
+    <SkillDomainTabs />
   </main>
 </template>
 

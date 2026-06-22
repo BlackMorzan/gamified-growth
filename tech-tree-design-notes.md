@@ -52,8 +52,8 @@ Each milestone depends on the previous one. Sections below are the reference det
 - [x] "New" badge visible on nodes in `newlyAvailableIds`. On `beforeunload`/`visibilitychange`, `useProfileStore` persists current available set as `prevSessionAvailableIds` for next session.
 
 **M5 — Domain navigation**
-- [ ] `SkillDomainTabs.vue` — tab per `SkillDomain` (4 tabs: Physical & Motor, Cognitive, Language & Communication, Social & Emotional); mounts the right `TechTree.vue` per tab. **Tabs-only — no cross-domain progress dashboard.**
-- [ ] Verify switching domains doesn't leak state (pan/zoom position, open bottom sheet) between trees.
+- [x] `SkillDomainTabs.vue` — tab per `SkillDomain` (4 tabs: Physical & Motor, Cognitive, Language & Communication, Social & Emotional); mounts the right `TechTree.vue` per tab. **Tabs-only — no cross-domain progress dashboard.**
+- [x] Verify switching domains doesn't leak state (pan/zoom position, open bottom sheet) between trees.
 
 **M6 — Mobile/PWA polish**
 - [ ] `TechTreeControls.vue` — zoom in/out buttons, jump-to-current-tier button. Wired into `TechTree.vue`'s pan/zoom state.
