@@ -100,7 +100,8 @@ const edgeSegments = computed((): EdgeSegment[] => {
       }
     }
   }
-  return segs
+  const order = { acquired: 0, available: 1, locked: 2 }
+  return segs.sort((a, b) => order[a.progress] - order[b.progress])
 })
 
 function nodeStyle(skill: Skill) {

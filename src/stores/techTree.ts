@@ -20,12 +20,18 @@ export const useTechTreeStore = defineStore('techTree', () => {
 
   const edges = computed(() =>
     skills.flatMap((skill) =>
-      skill.requires.map((prereqId) => ({
-        id: `${prereqId}->${skill.id}`,
-        from: skillById.get(prereqId)!,
-        to: skill,
-        fromProgress: progressOf(skillById.get(prereqId)!),
-      })),
+      skill.requires.map((prereqId) => {
+        const fromSkill = skillById.get(prereqId)!
+        const fromProg = progressOf(fromSkill)
+        return {
+          id: `${prereqId}->${skill.id}`,
+          from: fromSkill,
+          to: skill,
+          fromProgress: fromProg === 'acquired'
+            ? (progressOf(skill) === 'acquired' ? 'acquired' : 'available')
+            : 'locked',
+        }
+      }),
     ),
   )
 

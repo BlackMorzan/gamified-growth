@@ -37,17 +37,27 @@ const d = computed(() => {
 </script>
 
 <template>
-  <path :d="d" :class="`conn conn--${progress}`" fill="none" stroke-width="2" />
+  <g v-if="progress === 'locked'">
+    <path :d="d" class="conn conn--locked-erase" fill="none" />
+    <path :d="d" class="conn conn--locked" fill="none" />
+  </g>
+  <path v-else :d="d" :class="`conn conn--${progress}`" fill="none" stroke-width="2" />
 </template>
 
 <style scoped>
 .conn {
   transition: stroke 0.2s;
 }
+.conn--locked-erase {
+  stroke: var(--color-bg);
+  stroke-width: 3;
+  opacity: 0.7;
+}
 .conn--locked {
   stroke: var(--color-disabled);
   stroke-dasharray: 4 4;
-  opacity: 0.5;
+  stroke-width: 2;
+  opacity: 0.7;
 }
 .conn--available {
   stroke: var(--color-accent);
