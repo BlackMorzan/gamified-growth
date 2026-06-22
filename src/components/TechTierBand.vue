@@ -1,7 +1,6 @@
 <script setup lang="ts">
 defineProps<{
   tier: number
-  canvasHeight: number
 }>()
 
 const COL_WIDTH = 200
@@ -14,7 +13,6 @@ const COL_WIDTH = 200
     :style="{
       left: `${(tier - 1) * COL_WIDTH}px`,
       width: `${COL_WIDTH}px`,
-      height: `${canvasHeight}px`,
     }"
   />
 </template>
@@ -23,6 +21,7 @@ const COL_WIDTH = 200
 .tier-band {
   position: absolute;
   top: 0;
+  height: 100%;
   border-right: 1px solid var(--color-border-subtle);
 }
 

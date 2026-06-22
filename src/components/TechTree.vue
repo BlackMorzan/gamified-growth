@@ -38,7 +38,9 @@ const canvasWidth = computed(() =>
 )
 
 const canvasHeight = computed(() =>
-  Math.max(...domainSkills.value.map((s) => s.row)) * ROW_HEIGHT,
+  domainSkills.value.length
+    ? Math.max(...domainSkills.value.map((s) => s.row)) * ROW_HEIGHT
+    : 0,
 )
 
 // Cross-domain edges are excluded — from and to must both be in this domain
@@ -119,7 +121,6 @@ function nodeStyle(skill: Skill) {
         v-for="tier in tiers"
         :key="tier"
         :tier="tier"
-        :canvas-height="canvasHeight"
       />
 
       <svg
@@ -162,6 +163,7 @@ function nodeStyle(skill: Skill) {
 
 .tree-canvas {
   position: relative;
+  min-height: 100%;
   /* pan/zoom transform goes here in M6 */
 }
 
