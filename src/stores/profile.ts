@@ -57,10 +57,16 @@ export const useProfileStore = defineStore('profile', () => {
     _save()
   }
 
+  function setAcquiredDate(skillId: string, date: string): void {
+    const entry = acquired.value.find((a) => a.skillId === skillId)
+    if (entry) entry.acquiredDate = date
+    _save()
+  }
+
   function saveSessionSnapshot(availableIds: string[]): void {
     prevSessionAvailableIds.value = availableIds
     _save()
   }
 
-  return { profile, acquired, prevSessionAvailableIds, acquire, unacquire, saveSessionSnapshot }
+  return { profile, acquired, prevSessionAvailableIds, acquire, unacquire, setAcquiredDate, saveSessionSnapshot }
 })

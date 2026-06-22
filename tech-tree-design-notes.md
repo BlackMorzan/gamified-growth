@@ -39,17 +39,17 @@ Each milestone depends on the previous one. Sections below are the reference det
 - [x] Unit test: `newlyAvailableIds` returns skills that are `available` this session but were not in `prevSessionAvailableIds`.
 
 **M3 — Render one tree (no nav yet)**
-- [ ] Add route `/tree` → `SkillTreeView.vue` in `src/router/index.ts`. Add a nav link from `HomeView` for now.
-- [ ] `TechNode.vue` — renders icon/name/status/milestone overlay from store data, using design tokens. Positioned via pre-calculated grid (see Coordinate strategy).
-- [ ] `TechConnection.vue` — renders edges as SVG paths, styled by `fromProgress`. Coordinates from the same grid constants (see Coordinate strategy).
-- [ ] `TechTierBand.vue`, `TechTree.vue` — compose the above into one working domain tree (pan/zoom stubbed as `transform: none`).
-- [ ] Manually verify against one real domain: positions, lock state, milestone gold overlay all look right before continuing.
+- [x] Add route `/tree` → `SkillTreeView.vue` in `src/router/index.ts`. Add a nav link from `HomeView` for now.
+- [x] `TechNode.vue` — renders icon/name/status/milestone overlay from store data, using design tokens. Positioned via pre-calculated grid (see Coordinate strategy).
+- [x] `TechConnection.vue` — renders edges as SVG paths, styled by `fromProgress`. Coordinates from the same grid constants (see Coordinate strategy).
+- [x] `TechTierBand.vue`, `TechTree.vue` — compose the above into one working domain tree (pan/zoom stubbed as `transform: none`).
+- [x] Manually verify against one real domain: positions, lock state, milestone gold overlay all look right before continuing.
 
 **M4 — Node interaction**
-- [ ] Bottom sheet on `TechNode.vue` tap: age range, evidence list, lock reason if locked.
-- [ ] Mark-as-acquired flow in the bottom sheet (≤3 taps, date pre-fill/override). Calls `useProfileStore.acquire()`.
-- [ ] Verify reactive recompute: acquiring a skill updates downstream `progressOf`/`edges` with no manual refresh.
-- [ ] "New" badge visible on nodes in `newlyAvailableIds`. On `beforeunload`/`visibilitychange`, `useProfileStore` persists current available set as `prevSessionAvailableIds` for next session.
+- [x] Bottom sheet on `TechNode.vue` tap: age range, evidence list, lock reason if locked.
+- [x] Mark-as-acquired flow in the bottom sheet (≤3 taps, date pre-fill/override). Calls `useProfileStore.acquire()`.
+- [x] Verify reactive recompute: acquiring a skill updates downstream `progressOf`/`edges` with no manual refresh.
+- [x] "New" badge visible on nodes in `newlyAvailableIds`. On `beforeunload`/`visibilitychange`, `useProfileStore` persists current available set as `prevSessionAvailableIds` for next session.
 
 **M5 — Domain navigation**
 - [ ] `SkillDomainTabs.vue` — tab per `SkillDomain` (4 tabs: Physical & Motor, Cognitive, Language & Communication, Social & Emotional); mounts the right `TechTree.vue` per tab. **Tabs-only — no cross-domain progress dashboard.**

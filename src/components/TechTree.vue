@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { skills } from '@/data/skills'
 import type { Skill, SkillDomain } from '@/data/skills'
 import { useTechTreeStore } from '@/stores/techTree'
 import TechTierBand from './TechTierBand.vue'
 import TechConnection from './TechConnection.vue'
 import TechNode from './TechNode.vue'
+import SkillBottomSheet from './SkillBottomSheet.vue'
 
 const props = defineProps<{ domain: SkillDomain }>()
 
 const store = useTechTreeStore()
+const selectedSkill = ref<Skill | null>(null)
 
 const COL_WIDTH = 200
 const ROW_HEIGHT = 120
@@ -29,6 +31,7 @@ const domainSkills = computed(() => skills.filter((s) => s.domain === props.doma
 const tiers = computed(() =>
   [...new Set(domainSkills.value.map((s) => s.tier))].sort((a, b) => a - b),
 )
+
 
 const canvasWidth = computed(() =>
   Math.max(...domainSkills.value.map((s) => s.tier)) * COL_WIDTH,
@@ -140,9 +143,12 @@ function nodeStyle(skill: Skill) {
         :key="skill.id"
         :skill="skill"
         :style="nodeStyle(skill)"
+        @select="selectedSkill = $event"
       />
     </div>
   </div>
+
+  <SkillBottomSheet :skill="selectedSkill" @close="selectedSkill = null" />
 </template>
 
 <style scoped>

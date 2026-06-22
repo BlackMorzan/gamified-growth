@@ -36,5 +36,9 @@ export const useTechTreeStore = defineStore('techTree', () => {
     )
   })
 
-  return { acquiredIds, progressOf, acquiredDateOf, edges, newlyAvailableIds }
+  const currentAvailableIds = computed(() =>
+    skills.filter((s) => progressOf(s) === 'available').map((s) => s.id),
+  )
+
+  return { acquiredIds, progressOf, acquiredDateOf, edges, newlyAvailableIds, currentAvailableIds }
 })

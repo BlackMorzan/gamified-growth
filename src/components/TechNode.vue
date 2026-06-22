@@ -4,8 +4,13 @@ import type { Skill } from '@/data/skills'
 import { useTechTreeStore } from '@/stores/techTree'
 
 const props = defineProps<{ skill: Skill }>()
+const emit = defineEmits<{ select: [skill: Skill] }>()
 
 const store = useTechTreeStore()
+
+function open() {
+  emit('select', props.skill)
+}
 
 const progress = computed(() => store.progressOf(props.skill))
 const acquiredDate = computed(() => store.acquiredDateOf(props.skill))
@@ -18,11 +23,11 @@ const cardClass = computed(() => {
 })
 
 const icon = computed(() => {
+  if (progress.value === 'locked') return '🔒'
   if (props.skill.milestone && progress.value === 'acquired') return '★ ✓'
   if (props.skill.milestone) return '★'
   if (progress.value === 'acquired') return '✓'
-  if (progress.value === 'available') return '◎'
-  return '🔒'
+  return '◎'
 })
 
 const ageLine = computed(() => {
@@ -32,7 +37,15 @@ const ageLine = computed(() => {
 </script>
 
 <template>
-  <div :class="cardClass" role="button" tabindex="0" :aria-label="skill.name">
+  <div
+    :class="cardClass"
+    role="button"
+    tabindex="0"
+    :aria-label="skill.name"
+    @click="open"
+    @keydown.enter.prevent="open"
+    @keydown.space.prevent="open"
+  >
     <span v-if="isNew" class="tech-node__badge">New</span>
     <div class="tech-node__icon" aria-hidden="true">{{ icon }}</div>
     <div class="tech-node__name">{{ skill.name }}</div>
