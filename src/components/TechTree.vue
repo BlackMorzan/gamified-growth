@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watchEffect, onMounted, onUnmounted } from 'vue'
 import { skills } from '@/data/skills'
 import type { Skill, SkillDomain } from '@/data/skills'
 import { useTechTreeStore } from '@/stores/techTree'
@@ -116,6 +116,30 @@ function nodeStyle(skill: Skill) {
   return { left: `${nodeX(skill)}px`, top: `${nodeY(skill)}px` }
 }
 
+// Keep every corner of the viewport inside the canvas.
+// When the canvas is wider/taller than the viewport: hard clamp [viewDim - scaledDim, 0].
+// When smaller (zoomed out): center it (locked, no pan).
+// watchEffect (flush:'pre') writes back before each render so zoom math always sees clean state.
+watchEffect(() => {
+  const s = panZoom.scale.value
+  const viewW = viewportEl.value?.clientWidth ?? window.innerWidth
+  const viewH = viewportEl.value?.clientHeight ?? window.innerHeight
+  const scaledW = canvasWidth.value * s
+  const scaledH = canvasHeight.value * s
+
+  const clampedX =
+    scaledW >= viewW
+      ? Math.max(viewW - scaledW, Math.min(0, panZoom.translateX.value))
+      : (viewW - scaledW) / 2
+  // Canvas has min-height:100% so its DOM height always fills the viewport.
+  // When content is shorter, pin to top (ty=0); when taller, clamp to the hard edges.
+  const clampedY =
+    scaledH >= viewH ? Math.max(viewH - scaledH, Math.min(0, panZoom.translateY.value)) : 0
+
+  if (panZoom.translateX.value !== clampedX) panZoom.translateX.value = clampedX
+  if (panZoom.translateY.value !== clampedY) panZoom.translateY.value = clampedY
+})
+
 function jumpToAgeTier() {
   const age = profileStore.ageInMonths
   const viewW = viewportEl.value?.clientWidth ?? window.innerWidth
@@ -229,6 +253,7 @@ onUnmounted(() => {
   top: 0;
   left: 0;
   transform-origin: 0 0;
+  min-height: 100%;
 }
 
 .tree-edges {
