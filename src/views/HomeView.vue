@@ -7,47 +7,9 @@
     <header class="app-header">
       <div class="app-header__text">
         <h1 class="app-title">Baby Skill Tree</h1>
-        <p class="app-subtitle">0–24 months · developmental milestones</p>
       </div>
       <RouterLink to="/tree" class="nav-link">View Skill Tree →</RouterLink>
     </header>
-
-    <section class="skill-section">
-      <h2 class="section-title">Physical Motor</h2>
-      <div class="skill-grid">
-
-        <div class="skill-card skill-card--locked">
-          <div class="skill-card__icon">🔒</div>
-          <div class="skill-card__name">Head Control</div>
-          <div class="skill-card__age">0–3m</div>
-        </div>
-
-        <div class="skill-card skill-card--available" tabindex="0">
-          <div class="skill-card__icon">◎</div>
-          <div class="skill-card__name">Tummy Time</div>
-          <div class="skill-card__age">1–4m</div>
-        </div>
-
-        <div class="skill-card skill-card--acquired">
-          <div class="skill-card__icon">✓</div>
-          <div class="skill-card__name">Rolling Over</div>
-          <div class="skill-card__meta">Acquired · 14 Mar · Age 3m</div>
-        </div>
-
-        <div class="skill-card skill-card--milestone">
-          <div class="skill-card__icon">★</div>
-          <div class="skill-card__name">First Steps</div>
-          <div class="skill-card__age">9–15m</div>
-        </div>
-
-        <div class="skill-card skill-card--milestone skill-card--acquired-milestone">
-          <div class="skill-card__icon">★ ✓</div>
-          <div class="skill-card__name">Walking</div>
-          <div class="skill-card__meta">Acquired · 22 Apr · Age 12m</div>
-        </div>
-
-      </div>
-    </section>
   </main>
 </template>
 
