@@ -73,6 +73,12 @@ function saveDate() {
   profileStore.setAcquiredDate(props.skill.id, editDateInput.value)
   editingDate.value = false
 }
+
+function lockBack() {
+  if (!props.skill) return
+  profileStore.unacquire(props.skill.id)
+  emit('close')
+}
 </script>
 
 <template>
@@ -103,6 +109,7 @@ function saveDate() {
           <template v-if="!editingDate">
             <span class="sheet-acquired-date">Acquired {{ acquiredDate }}</span>
             <button class="sheet-edit-btn" @click="startEditDate">Edit date</button>
+            <button class="sheet-lock-back-btn" title="Undo — mark as not acquired" @click="lockBack">🔒</button>
           </template>
           <template v-else>
             <label class="sheet-acquire-label" for="edit-date">Edit acquisition date</label>
@@ -289,6 +296,26 @@ function saveDate() {
 .sheet-edit-btn:hover { color: var(--color-text); border-color: var(--color-text-muted); }
 .sheet-edit-btn:focus-visible {
   outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.sheet-lock-back-btn {
+  background: none;
+  border: 1px solid rgba(233, 69, 96, 0.35);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  padding: 2px var(--space-2);
+  cursor: pointer;
+  line-height: 1.4;
+  margin-left: auto;
+}
+.sheet-lock-back-btn:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+.sheet-lock-back-btn:focus-visible {
+  outline: 2px solid var(--color-error);
   outline-offset: 2px;
 }
 
