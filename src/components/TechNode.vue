@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { Skill } from '@/data/skills'
 import { useTechTreeStore } from '@/stores/techTree'
+import { useSplitName } from '@/composables/useSplitName'
 
 const props = defineProps<{ skill: Skill }>()
 const emit = defineEmits<{ select: [skill: Skill] }>()
@@ -24,7 +25,6 @@ const cardClass = computed(() => {
 
 const icon = computed(() => {
   if (progress.value === 'locked') return '🔒'
-  if (props.skill.milestone && progress.value === 'acquired') return '★ ✓'
   if (props.skill.milestone) return '★'
   if (progress.value === 'acquired') return '✓'
   return '◎'
@@ -34,6 +34,8 @@ const ageLine = computed(() => {
   const { start, end } = props.skill.typical_age_months
   return `${start}–${end}m`
 })
+
+const splitName = computed(() => useSplitName(props.skill.name))
 </script>
 
 <template>
@@ -47,8 +49,13 @@ const ageLine = computed(() => {
     @keydown.space.prevent="open"
   >
     <span v-if="isNew" class="tech-node__badge">New</span>
-    <div class="tech-node__icon" aria-hidden="true">{{ icon }}</div>
-    <div class="tech-node__name">{{ skill.name }}</div>
+    <div class="tech-node__top">
+      <div class="tech-node__icon" aria-hidden="true">{{ icon }}</div>
+      <div class="tech-node__name">
+        <span>{{ splitName.line1 }}</span>
+        <span v-if="splitName.line2">{{ splitName.line2 }}</span>
+      </div>
+    </div>
     <div class="tech-node__sub">
       <template v-if="progress === 'acquired' && acquiredDate">{{ acquiredDate }}</template>
       <template v-else>{{ ageLine }}</template>
@@ -61,13 +68,12 @@ const ageLine = computed(() => {
   position: absolute;
   width: 140px;
   height: 72px;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-1) var(--space-2) var(--space-2);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 2px;
+  justify-content: space-between;
   cursor: pointer;
   overflow: hidden;
   transition: background 0.15s, box-shadow 0.15s;
@@ -92,16 +98,30 @@ const ageLine = computed(() => {
   border-radius: 3px;
 }
 
+.tech-node__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
 .tech-node__icon {
-  font-size: 12px;
-  line-height: 1;
+  font-size: 13px;
+  line-height: 1.3;
+  flex-shrink: 0;
 }
 
 .tech-node__name {
+  display: flex;
+  flex-direction: column;
   font-family: var(--font-display);
   font-size: 12px;
   letter-spacing: 0.02em;
   color: var(--color-text);
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.tech-node__name span {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
