@@ -55,12 +55,17 @@ Each milestone depends on the previous one. Sections below are the reference det
 - [x] `SkillDomainTabs.vue` — tab per `SkillDomain` (4 tabs: Physical & Motor, Cognitive, Language & Communication, Social & Emotional); mounts the right `TechTree.vue` per tab. **Tabs-only — no cross-domain progress dashboard.**
 - [x] Verify switching domains doesn't leak state (pan/zoom position, open bottom sheet) between trees.
 
-**M6 — Mobile/PWA polish**
-- [ ] `TechTreeControls.vue` — zoom in/out buttons, jump-to-current-tier button. Wired into `TechTree.vue`'s pan/zoom state.
-- [ ] Pinch-zoom + pan: real touch handlers replacing M3's stub.
-- [ ] Default view centered on the baby's current age tier (derived from `birthDate`).
-- [ ] Touch targets ≥44–48px regardless of visual icon size.
-- [ ] First-run gate: tree doesn't render without `birthDate` in `useProfileStore.profile`.
+**M6 — Profile setup + first-run gate**
+- [x] `ProfileSetupView.vue` — form with baby name + birthDate inputs; validates both non-empty before calling `useProfileStore.setProfile()`. Route: `/setup`.
+- [x] Add `setProfile(profile: BabyProfile): void` to `useProfileStore` (persists to `PersistedUserData`).
+- [x] Router guard: redirect `/tree` → `/setup` when `useProfileStore.profile` is null; redirect `/setup` → `/tree` when profile is already set.
+- [x] `useProfileStore` must expose a computed `ageInMonths` (derived from `birthDate` + today's date) for use by the tree's default-view centering logic.
+
+**M7 — Mobile/PWA polish**
+- [x] `TechTreeControls.vue` — zoom in/out buttons, jump-to-current-tier button. Wired into `TechTree.vue`'s pan/zoom state.
+- [x] Pinch-zoom + pan: real touch handlers replacing M3's stub.
+- [x] Default view centered on the baby's current age tier (derived from `useProfileStore.ageInMonths`).
+- [x] Touch targets ≥44–48px regardless of visual icon size.
 
 ---
 
@@ -88,6 +93,11 @@ export interface Skill {
 export interface AcquiredSkill {
   skillId: string
   acquiredDate: string      // ISO date string
+}
+
+export interface BabyProfile {
+  name: string
+  birthDate: string   // ISO date string, e.g. "2024-03-15"
 }
 
 export interface PersistedUserData {

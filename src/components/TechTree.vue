@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { skills } from '@/data/skills'
 import type { Skill, SkillDomain } from '@/data/skills'
 import { useTechTreeStore } from '@/stores/techTree'
+import { useProfileStore } from '@/stores/profile'
+import { usePanZoom } from '@/composables/usePanZoom'
 import TechTierBand from './TechTierBand.vue'
 import TechConnection from './TechConnection.vue'
 import TechNode from './TechNode.vue'
+import TechTreeControls from './TechTreeControls.vue'
 import SkillBottomSheet from './SkillBottomSheet.vue'
 
 const props = defineProps<{ domain: SkillDomain }>()
 
 const store = useTechTreeStore()
+const profileStore = useProfileStore()
 const selectedSkill = ref<Skill | null>(null)
+const viewportEl = ref<HTMLElement | null>(null)
+
+const panZoom = usePanZoom()
 
 const COL_WIDTH = 200
 const ROW_HEIGHT = 120
@@ -31,7 +38,6 @@ const domainSkills = computed(() => skills.filter((s) => s.domain === props.doma
 const tiers = computed(() =>
   [...new Set(domainSkills.value.map((s) => s.tier))].sort((a, b) => a - b),
 )
-
 
 const canvasWidth = computed(() =>
   Math.max(...domainSkills.value.map((s) => s.tier)) * COL_WIDTH,
@@ -109,13 +115,62 @@ const edgeSegments = computed((): EdgeSegment[] => {
 function nodeStyle(skill: Skill) {
   return { left: `${nodeX(skill)}px`, top: `${nodeY(skill)}px` }
 }
+
+function jumpToAgeTier() {
+  const age = profileStore.ageInMonths
+  const viewW = viewportEl.value?.clientWidth ?? window.innerWidth
+
+  // Skills in this domain whose age range contains current age
+  const matching = domainSkills.value.filter(
+    (s) => s.typical_age_months.start <= age && age <= s.typical_age_months.end,
+  )
+
+  let targetTier: number
+  if (matching.length > 0) {
+    const sum = matching.reduce((acc, s) => acc + s.tier, 0)
+    targetTier = Math.round(sum / matching.length)
+  } else {
+    // Fall back to skill whose age midpoint is closest
+    const sorted = [...domainSkills.value].sort((a, b) => {
+      const aMid = (a.typical_age_months.start + a.typical_age_months.end) / 2
+      const bMid = (b.typical_age_months.start + b.typical_age_months.end) / 2
+      return Math.abs(aMid - age) - Math.abs(bMid - age)
+    })
+    targetTier = sorted[0]?.tier ?? 1
+  }
+
+  const tierCenterX = (targetTier - 1) * COL_WIDTH + COL_WIDTH / 2
+  panZoom.setView(viewW / 2 - tierCenterX * panZoom.scale.value, 24, panZoom.scale.value)
+}
+
+// Register touch handlers as non-passive so gestures are fully captured
+onMounted(() => {
+  jumpToAgeTier()
+  const el = viewportEl.value
+  if (!el) return
+  el.addEventListener('touchstart', panZoom.onTouchStart, { passive: true })
+  el.addEventListener('touchmove', panZoom.onTouchMove, { passive: true })
+  el.addEventListener('touchend', panZoom.onTouchEnd, { passive: true })
+})
+
+onUnmounted(() => {
+  const el = viewportEl.value
+  if (!el) return
+  el.removeEventListener('touchstart', panZoom.onTouchStart)
+  el.removeEventListener('touchmove', panZoom.onTouchMove)
+  el.removeEventListener('touchend', panZoom.onTouchEnd)
+})
 </script>
 
 <template>
-  <div class="tree-viewport">
+  <div ref="viewportEl" class="tree-viewport">
     <div
       class="tree-canvas"
-      :style="{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }"
+      :style="{
+        width: `${canvasWidth}px`,
+        height: `${canvasHeight}px`,
+        transform: panZoom.transform.value,
+      }"
     >
       <TechTierBand
         v-for="tier in tiers"
@@ -148,6 +203,12 @@ function nodeStyle(skill: Skill) {
         @select="selectedSkill = $event"
       />
     </div>
+
+    <TechTreeControls
+      @zoom-in="panZoom.zoomIn()"
+      @zoom-out="panZoom.zoomOut()"
+      @jump-to-age="jumpToAgeTier()"
+    />
   </div>
 
   <SkillBottomSheet :skill="selectedSkill" @close="selectedSkill = null" />
@@ -155,16 +216,19 @@ function nodeStyle(skill: Skill) {
 
 <style scoped>
 .tree-viewport {
-  overflow: auto;
+  overflow: hidden;
   width: 100%;
   flex: 1;
   min-height: 0;
+  position: relative;
+  touch-action: none;
 }
 
 .tree-canvas {
-  position: relative;
-  min-height: 100%;
-  /* pan/zoom transform goes here in M6 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
 }
 
 .tree-edges {
