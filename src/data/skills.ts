@@ -132,7 +132,7 @@ const PM003: Skill = {
 
 const PM004: Skill = {
   id: 'PM004',
-  name: 'Hands-to-Mouth Contact',
+  name: 'Hands to Mouth Contact',
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 1,
@@ -264,7 +264,7 @@ const PM008: Skill = {
 
 const PM013: Skill = {
   id: 'PM013',
-  name: 'Crawling on Hands and Knees',
+  name: 'Hands and Knees Crawling',
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 4,
@@ -300,7 +300,7 @@ const PM010: Skill = {
 
 const PM012: Skill = {
   id: 'PM012',
-  name: 'Controlled Release of Objects',
+  name: 'Controlled Release',
   domain: 'physical_motor',
   category: 'object_manipulation',
   tier: 4,
@@ -607,7 +607,7 @@ const CO004: Skill = {
 
 const CO008: Skill = {
   id: 'CO008',
-  name: 'Social Learning Through Observation',
+  name: 'Learning By Observation',
   domain: 'cognitive',
   category: 'imitation',
   tier: 2,
@@ -643,7 +643,7 @@ const CO007: Skill = {
 
 const CO005: Skill = {
   id: 'CO005',
-  name: 'Cause-and-Effect Learning',
+  name: 'Cause-Effect Learning',
   domain: 'cognitive',
   category: 'causal_reasoning',
   tier: 2,
@@ -1133,7 +1133,7 @@ const LC009: Skill = {
 
 const LC015: Skill = {
   id: 'LC015',
-  name: 'Following Simple Instructions',
+  name: 'Follow Simple Instructions',
   domain: 'language_communication',
   category: 'receptive_language',
   tier: 4,
@@ -1151,7 +1151,7 @@ const LC015: Skill = {
 
 const LC013: Skill = {
   id: 'LC013',
-  name: 'Pointing to Share Attention',
+  name: 'Attention Pointing',
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 4,
@@ -1169,7 +1169,7 @@ const LC013: Skill = {
 
 const LC014: Skill = {
   id: 'LC014',
-  name: 'First Meaningful Words',
+  name: 'Meaningful First Words',
   domain: 'language_communication',
   category: 'expressive_language',
   tier: 4,
@@ -1225,7 +1225,7 @@ const LC017: Skill = {
 
 const LC019: Skill = {
   id: 'LC019',
-  name: 'Following Two-Step Directions',
+  name: 'Two-Step Directions',
   domain: 'language_communication',
   category: 'receptive_language',
   tier: 5,
@@ -1245,7 +1245,7 @@ const LC019: Skill = {
 
 const LC020: Skill = {
   id: 'LC020',
-  name: 'Early Conversational Exchange',
+  name: 'Conversational Exchange',
   domain: 'language_communication',
   category: 'pragmatics',
   tier: 6,
@@ -1381,7 +1381,7 @@ const SE006: Skill = {
 
 const SE005: Skill = {
   id: 'SE005',
-  name: 'Preference for Familiar Caregivers',
+  name: 'Preference for Caregivers',
   domain: 'social_emotional',
   category: 'social_bonding',
   tier: 2,
@@ -1399,7 +1399,7 @@ const SE005: Skill = {
 
 const SE008: Skill = {
   id: 'SE008',
-  name: 'Expanded Emotional Expression',
+  name: 'Emotional Expression',
   domain: 'social_emotional',
   category: 'emotional_expression',
   tier: 2,
