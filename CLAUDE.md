@@ -2,7 +2,7 @@
 
 > **Project overview, phase roadmap/status, stack, and the data model live in [`README.md`](./README.md).** This file holds the working instructions that steer how code is written. When the roadmap or stack changes, update the README, not this file.
 
-Quick orientation: an **offline-first PWA** tracking a baby's developmental milestones (0–24 months) as a gamified skill tree. ~95% static data, ~5% user-owned data in localStorage. **Phase 2b is the current target.** The canonical data model + skill schema is [`src/data/skills.ts`](./src/data/skills.ts).
+Quick orientation: an **offline-first PWA** tracking a baby's developmental milestones (0–24 months) as a gamified skill tree. ~95% static data, ~5% user-owned data in localStorage. **Phase 2b is complete; Phase 2c (PWA / service worker / Lighthouse) is next.** The canonical data model + skill schema is [`src/data/skills.ts`](./src/data/skills.ts); user data types (`BabyProfile`, `AcquiredSkill`, `PersistedUserData`) live in [`src/types/user.ts`](./src/types/user.ts).
 
 ---
 
@@ -160,7 +160,7 @@ Every skill node must visually communicate its state at a glance:
 - **First-run flow** — baby profile (name + birthDate) gates the skill tree. BirthDate drives all age calculations; tree must not render without it.
 - **Mark-as-acquired flow** — must complete in ≤3 taps. Pre-fill today's date, allow override. After confirm: animate card state change + reveal newly unlocked skills.
 - **Lock icon context** — in Phase 2, all locked skills use the same visual. Add "requires: [skill name]" on tap for locked cards. Post-Phase 2: consider a distinct visual for skills where baby is within `typical_age_months` but prerequisites unmet (different emotional register from far-future locked skills).
-- **Newly-available highlight** — store last-session timestamp in localStorage. Skills that became available since last visit get a transient "new" badge until acknowledged. Required before Phase 2b ships.
+- **Newly-available highlight** — on session end, `useProfileStore.saveSessionSnapshot(availableIds)` writes `prevSessionAvailableIds` (a `string[]`) to `PersistedUserData` in localStorage. On next visit, `useTechTreeStore.newlyAvailableIds` diffs current available set against that snapshot. Skills that became available since last visit get a transient "new" badge. Implemented and shipped in Phase 2b.
 
 ---
 
