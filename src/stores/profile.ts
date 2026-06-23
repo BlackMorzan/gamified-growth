@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { BabyProfile, AcquiredSkill, PersistedUserData } from '@/types/user'
 
 const STORAGE_KEY = 'ggg-data'
@@ -63,10 +63,26 @@ export const useProfileStore = defineStore('profile', () => {
     _save()
   }
 
+  function setProfile(p: BabyProfile): void {
+    profile.value = p
+    _save()
+  }
+
   function saveSessionSnapshot(availableIds: string[]): void {
     prevSessionAvailableIds.value = availableIds
     _save()
   }
 
-  return { profile, acquired, prevSessionAvailableIds, acquire, unacquire, setAcquiredDate, saveSessionSnapshot }
+  const ageInMonths = computed((): number => {
+    if (!profile.value) return 0
+    const birth = new Date(profile.value.birthDate)
+    const now = new Date()
+    const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
+    return Math.max(0, months)
+  })
+
+  return {
+    profile, acquired, prevSessionAvailableIds, ageInMonths,
+    acquire, unacquire, setAcquiredDate, setProfile, saveSessionSnapshot,
+  }
 })

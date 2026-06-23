@@ -68,7 +68,7 @@ const splitName = computed(() => useSplitName(props.skill.name))
   position: absolute;
   width: 140px;
   height: 72px;
-  padding: var(--space-2) var(--space-1) var(--space-2) var(--space-2);
+  padding: var(--space-2) var(--space-1) var(--space-2) var(--space-1);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
   display: flex;
