@@ -42,28 +42,28 @@ export function usePanZoom(minScale = 0.25, maxScale = 3) {
 
   function onTouchStart(e: TouchEvent) {
     active = snapshot(e)
-    if (active.length === 2) lastPinchDist = hypot(active[0], active[1])
+    if (active.length === 2) lastPinchDist = hypot(active[0]!, active[1]!)
   }
 
   function onTouchMove(e: TouchEvent) {
     const current = snapshot(e)
 
     if (current.length === 1) {
-      const prev = active.find((t) => t.id === current[0].id)
+      const prev = active.find((t) => t.id === current[0]!.id)
       if (prev) {
-        translateX.value += current[0].x - prev.x
-        translateY.value += current[0].y - prev.y
+        translateX.value += current[0]!.x - prev.x
+        translateY.value += current[0]!.y - prev.y
       }
     } else if (current.length === 2) {
-      const prevA = active.find((t) => t.id === current[0].id)
-      const prevB = active.find((t) => t.id === current[1].id)
+      const prevA = active.find((t) => t.id === current[0]!.id)
+      const prevB = active.find((t) => t.id === current[1]!.id)
       if (!prevA || !prevB) {
         active = current
         return
       }
 
-      const newDist = hypot(current[0], current[1])
-      const newMid = { x: (current[0].x + current[1].x) / 2, y: (current[0].y + current[1].y) / 2 }
+      const newDist = hypot(current[0]!, current[1]!)
+      const newMid = { x: (current[0]!.x + current[1]!.x) / 2, y: (current[0]!.y + current[1]!.y) / 2 }
       const oldMid = { x: (prevA.x + prevB.x) / 2, y: (prevA.y + prevB.y) / 2 }
 
       const newScale = clamp(scale.value * (newDist / lastPinchDist))
@@ -83,7 +83,7 @@ export function usePanZoom(minScale = 0.25, maxScale = 3) {
 
   function onTouchEnd(e: TouchEvent) {
     active = snapshot(e)
-    if (active.length === 2) lastPinchDist = hypot(active[0], active[1])
+    if (active.length === 2) lastPinchDist = hypot(active[0]!, active[1]!)
   }
 
   return {

@@ -92,7 +92,7 @@ const edgeSegments = computed((): EdgeSegment[] => {
         y1: segY1,
         x2: tierX(fromTier + 1),
         y2,
-        progress: edge.fromProgress,
+        progress: edge.fromProgress as EdgeSegment['progress'],
       })
 
       // through-card line for each intermediate simulated card
@@ -103,7 +103,7 @@ const edgeSegments = computed((): EdgeSegment[] => {
           y1: y2,
           x2: tierX(fromTier + 1) + CARD_WIDTH,
           y2,
-          progress: edge.fromProgress,
+          progress: edge.fromProgress as EdgeSegment['progress'],
         })
       }
     }

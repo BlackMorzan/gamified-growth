@@ -8,7 +8,7 @@ export function useSplitName(name: string, maxChars = 13): { line1: string; line
 
   if (spaces.length === 0) return { line1: name, line2: null }
 
-  let bestIdx = spaces[0]
+  let bestIdx = spaces[0]!
   let bestDiff = Infinity
 
   for (const idx of spaces) {
