@@ -1,149 +1,105 @@
 <script setup lang="ts">
-// Design system smoke test — all skill card states
+import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
+import { useProfileStore } from '@/stores/profile'
+import { useBabyProgress } from '@/composables/useBabyProgress'
+import BabyCard from '@/components/BabyCard.vue'
+import AddBabyForm from '@/components/AddBabyForm.vue'
+
+const { babies } = storeToRefs(useProfileStore())
+const showForm = ref(false)
+
+function progressFor(babyName: string) {
+  return useBabyProgress(babyName).progress.value
+}
 </script>
 
 <template>
   <main class="home">
-    <header class="app-header">
-      <div class="app-header__text">
-        <h1 class="app-title">Baby Skill Tree</h1>
-      </div>
-      <RouterLink to="/tree" class="nav-link">View Skill Tree →</RouterLink>
+    <header class="home__header">
+      <h1 class="home__title">Baby Skill Tree</h1>
+      <button v-if="!showForm" class="add-btn" @click="showForm = true">+ Add Baby</button>
     </header>
+
+    <AddBabyForm
+      v-if="showForm"
+      @saved="showForm = false"
+      @cancel="showForm = false"
+    />
+
+    <section class="home__list">
+      <BabyCard
+        v-for="(baby, index) in babies"
+        :key="baby.name"
+        :baby="baby"
+        :progress="progressFor(baby.name)"
+        :index="index"
+      />
+      <p v-if="babies.length === 0" class="home__empty">
+        No babies yet. Add one above to get started.
+      </p>
+    </section>
   </main>
 </template>
 
 <style scoped>
 .home {
   padding: var(--space-8) var(--space-6);
-  max-width: 860px;
+  max-width: 600px;
   margin: 0 auto;
-}
-
-.app-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--space-8);
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
-.nav-link {
-  font-size: 14px;
-  color: var(--color-accent);
-  text-decoration: none;
+.home__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home__title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: var(--color-text);
+}
+
+.add-btn {
   padding: var(--space-2) var(--space-4);
+  background: transparent;
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-sm);
-  white-space: nowrap;
-}
-
-.nav-link:hover {
-  background: var(--color-skill-available);
-}
-
-.app-title {
-  font-family: var(--font-display);
-  font-size: 32px;
-  color: var(--color-text);
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-2);
-}
-
-.app-subtitle {
-  font-size: 14px;
-  color: var(--color-text-muted);
-}
-
-.section-title {
-  font-family: var(--font-display);
-  font-size: 16px;
-  color: var(--color-text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-4);
-}
-
-.skill-grid {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.skill-card {
-  width: 160px;
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-subtle);
-  transition: background 0.15s, box-shadow 0.15s;
-}
-
-.skill-card__icon {
-  font-size: 14px;
-  margin-bottom: var(--space-2);
-}
-
-.skill-card__name {
-  font-family: var(--font-display);
-  font-size: 16px;
-  letter-spacing: 0.03em;
-  margin-bottom: var(--space-2);
-}
-
-.skill-card__age {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.skill-card__meta {
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-/* — locked — */
-.skill-card--locked {
-  background: var(--color-skill-locked);
-}
-.skill-card--locked .skill-card__name {
-  color: var(--color-text-locked);
-}
-.skill-card--locked .skill-card__icon {
-  color: var(--color-text-locked);
-}
-
-/* — available — */
-.skill-card--available {
-  background: var(--color-skill-available);
-  border-color: var(--color-accent);
-  cursor: pointer;
-}
-.skill-card--available:hover,
-.skill-card--available:focus-visible {
-  background: var(--color-skill-available-hover);
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.25);
-  outline: none;
-}
-.skill-card--available .skill-card__icon {
   color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
 }
 
-/* — acquired — */
-.skill-card--acquired {
-  background: var(--color-skill-acquired);
-  border-color: var(--color-skill-acquired-border);
-}
-.skill-card--acquired .skill-card__icon {
-  color: var(--color-success-text);
+.add-btn:hover {
+  background: var(--color-skill-available);
 }
 
-/* — milestone — */
-.skill-card--milestone {
-  background: var(--color-skill-milestone);
-  border-color: var(--color-accent-gold);
+.add-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
 }
-.skill-card--milestone .skill-card__name {
-  color: var(--color-accent-gold);
+
+.home__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
-.skill-card--milestone .skill-card__icon {
-  color: var(--color-accent-gold);
+
+.home__empty {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-8) 0;
 }
 </style>
