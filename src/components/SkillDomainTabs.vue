@@ -69,15 +69,16 @@ const activeIndex = ref(0)
   border: none;
   border-bottom: 2px solid transparent;
   color: var(--color-text-muted);
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.03em;
+  font-family: var(--font-body);
+  font-size: 13px;
+  letter-spacing: 0;
   cursor: pointer;
   white-space: normal;
   text-align: center;
   min-height: 48px;
   line-height: 1.3;
   transition: color 0.15s, border-color 0.15s;
+  box-shadow: inset 14px 0 16px -8px rgba(0,0,0,0.6), inset -14px 0 16px -8px rgba(0,0,0,0.6);
 }
 
 .tab-btn:hover {
@@ -87,6 +88,8 @@ const activeIndex = ref(0)
 .tab-btn.active {
   color: var(--color-accent);
   border-bottom-color: var(--color-accent);
+  text-shadow: 0 0 12px rgba(6, 182, 212, 0.55);
+  background: linear-gradient(to bottom, rgba(6, 182, 212, 0.08), transparent);
 }
 
 .tab-btn:focus-visible {

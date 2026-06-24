@@ -129,7 +129,6 @@ function lockBack() {
         </div>
 
         <div v-if="progress === 'locked' && unmetPrereqs.length" class="sheet-lock-reason">
-          <!-- TODO: review by UI/UX designer -->
           <span class="sheet-lock-label">Requires:</span>
           <ul class="sheet-prereq-list">
             <li v-for="prereq in unmetPrereqs" :key="prereq.id">{{ prereq.name }}</li>
@@ -319,18 +318,17 @@ function lockBack() {
   outline-offset: 2px;
 }
 
-/* TODO: review by UI/UX designer */
 .sheet-lock-reason {
-  background: rgba(233, 69, 96, 0.1);
+  background: var(--color-surface-deep);
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
-  border-left: 3px solid var(--color-error);
+  border-left: 3px solid var(--color-border-subtle);
 }
 
 .sheet-lock-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-error);
+  color: var(--color-text-muted);
   display: block;
   margin-bottom: var(--space-1);
 }

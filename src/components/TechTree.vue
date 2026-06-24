@@ -248,6 +248,20 @@ onUnmounted(() => {
   touch-action: none;
 }
 
+/* vignette — fixed overlay that creates a "floor" the nodes float above */
+.tree-viewport::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  background: radial-gradient(
+    ellipse 85% 75% at 50% 42%,
+    transparent 25%,
+    rgba(8, 10, 22, 0.65) 100%
+  );
+}
+
 .tree-canvas {
   position: absolute;
   top: 0;

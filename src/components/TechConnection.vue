@@ -61,9 +61,10 @@ const d = computed(() => {
 }
 .conn--available {
   stroke: var(--color-accent);
-  opacity: 0.7;
+  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.55));
 }
 .conn--acquired {
   stroke: var(--color-skill-acquired-border);
+  filter: drop-shadow(0 0 3px rgba(66, 168, 115, 0.55));
 }
 </style>

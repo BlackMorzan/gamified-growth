@@ -76,7 +76,13 @@ const splitName = computed(() => useSplitName(props.skill.name))
   justify-content: space-between;
   cursor: pointer;
   overflow: hidden;
-  transition: background 0.15s, box-shadow 0.15s;
+  box-shadow: var(--elev-1), var(--bevel);
+  transition:
+    background 0.2s ease,
+    box-shadow 0.3s ease,
+    transform 0.15s cubic-bezier(.2,.7,.3,1),
+    opacity 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .tech-node:focus-visible {
@@ -132,56 +138,86 @@ const splitName = computed(() => useSplitName(props.skill.name))
   color: var(--color-text-muted);
 }
 
-/* locked */
+/* locked — recedes via opacity + lowest elevation only; no filter/transform avoids GPU layer */
 .tech-node--locked {
   background: var(--color-skill-locked);
+  opacity: 0.5;
+  box-shadow: var(--elev-1);
 }
 .tech-node--locked .tech-node__name,
 .tech-node--locked .tech-node__icon {
   color: var(--color-text-locked);
 }
 
-/* available */
+/* available — forward, bright, lifted via shadow + glow, breathing */
 .tech-node--available {
-  background: var(--color-skill-available);
+  background: linear-gradient(180deg, var(--color-skill-available), #0c1a2d);
   border-color: var(--color-accent);
+  box-shadow: var(--elev-2), var(--bevel), 0 0 26px -4px rgba(6, 182, 212, 0.55);
+  animation: breathe 2.8s ease-in-out infinite;
 }
-.tech-node--available:hover,
 .tech-node--available:focus-visible {
-  background: var(--color-skill-available-hover);
-  box-shadow: 0 0 8px rgba(6, 182, 212, 0.25);
-  outline: none;
+  background: linear-gradient(180deg, var(--color-skill-available-hover), #0c1a2d);
+  box-shadow: var(--elev-2), var(--bevel), 0 0 26px -4px rgba(6, 182, 212, 0.55);
 }
 .tech-node--available .tech-node__icon {
   color: var(--color-accent);
 }
 
-/* acquired */
+/* acquired — settled, calm green light */
 .tech-node--acquired {
-  background: var(--color-skill-acquired);
+  background: linear-gradient(180deg, var(--color-skill-acquired), #0b1f16);
   border-color: var(--color-skill-acquired-border);
+  box-shadow: var(--elev-2), var(--bevel), 0 0 20px -7px rgba(66, 168, 115, 0.55);
 }
 .tech-node--acquired .tech-node__icon {
   color: var(--color-success-text);
 }
 
-/* milestone (available) */
+/* milestone (available) — gold frame, elevated */
 .tech-node--milestone {
-  background: var(--color-skill-milestone);
+  background: linear-gradient(180deg, var(--color-skill-milestone), #16130a);
   border-color: var(--color-accent-gold);
+  box-shadow: var(--elev-2), var(--bevel), 0 0 22px -8px rgba(245, 166, 35, 0.5);
 }
 .tech-node--milestone .tech-node__name,
 .tech-node--milestone .tech-node__icon {
   color: var(--color-accent-gold);
 }
 
-/* milestone acquired — gold wins over green */
+/* milestone acquired — gold always wins over green */
 .tech-node--acquired-milestone {
-  background: var(--color-skill-milestone);
+  background: linear-gradient(180deg, var(--color-skill-milestone), #16130a);
   border-color: var(--color-accent-gold);
+  box-shadow: var(--elev-2), var(--bevel), 0 0 22px -8px rgba(245, 166, 35, 0.5);
 }
 .tech-node--acquired-milestone .tech-node__name,
 .tech-node--acquired-milestone .tech-node__icon {
   color: var(--color-accent-gold);
+}
+
+/* hover-lift — pointer devices only; scale is transient so no GPU layer at rest */
+@media (hover: hover) {
+  .tech-node--available:hover {
+    transform: scale(1.06);
+    box-shadow: var(--elev-3), var(--bevel), 0 0 36px -2px rgba(6, 182, 212, 0.7);
+    animation: none;
+  }
+
+  .tech-node:not(.tech-node--available):hover {
+    transform: scale(1.03);
+    box-shadow: var(--elev-3), var(--bevel);
+  }
+}
+
+/* tap feedback — all devices, all states */
+.tech-node:active {
+  transform: scale(0.96);
+  transition: transform 0.08s ease;
+}
+
+@keyframes breathe {
+  0%, 100% { box-shadow: var(--elev-2), var(--bevel), 0 0 22px -6px rgba(6, 182, 212, 0.55); }
+  50%       { box-shadow: var(--elev-3), var(--bevel), 0 0 34px -2px rgba(6, 182, 212, 0.55); }
 }
 </style>
