@@ -41,6 +41,15 @@ const d = computed(() => {
     <path :d="d" class="conn conn--locked-erase" fill="none" />
     <path :d="d" class="conn conn--locked" fill="none" />
   </g>
+  <g v-else-if="progress === 'available'">
+    <path :d="d" class="conn conn--available" fill="none" stroke-width="2" />
+    <g class="pulse">
+      <circle class="blob trail t3" r="1.2" :style="`offset-path: path('${d}')`" />
+      <circle class="blob trail t2" r="1.7" :style="`offset-path: path('${d}')`" />
+      <circle class="blob trail t1" r="2.3" :style="`offset-path: path('${d}')`" />
+      <circle class="blob"          r="3.2" :style="`offset-path: path('${d}')`" />
+    </g>
+  </g>
   <path v-else :d="d" :class="`conn conn--${progress}`" fill="none" stroke-width="2" />
 </template>
 
@@ -66,5 +75,34 @@ const d = computed(() => {
 .conn--acquired {
   stroke: var(--color-skill-acquired-border);
   filter: drop-shadow(0 0 3px rgba(66, 168, 115, 0.55));
+}
+
+.blob {
+  fill: #bfe6ff;
+  filter: drop-shadow(0 0 3px var(--color-accent)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.55));
+  offset-distance: 0%;
+  animation: comet 4.2s ease-in-out infinite;
+}
+.blob.trail {
+  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.55));
+  animation-name: comet-trail;
+}
+.blob.t1 { animation-delay: 0.05s; }
+.blob.t2 { animation-delay: 0.10s; }
+.blob.t3 { animation-delay: 0.15s; }
+
+@keyframes comet {
+  0%   { offset-distance: 0%;   opacity: 0; }
+  6%   { opacity: 1; }
+  26%  { offset-distance: 100%; opacity: 1; }
+  32%  { opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes comet-trail {
+  0%   { offset-distance: 0%;   opacity: 0;   }
+  6%   { opacity: 0.45; }
+  26%  { offset-distance: 100%; opacity: 0.45; }
+  32%  { opacity: 0; }
+  100% { offset-distance: 100%; opacity: 0;   }
 }
 </style>
