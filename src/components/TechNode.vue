@@ -16,11 +16,14 @@ function open() {
 const progress = computed(() => store.progressOf(props.skill))
 const acquiredDate = computed(() => store.acquiredDateOf(props.skill))
 const isNew = computed(() => store.newlyAvailableIds.has(props.skill.id))
+const isEarning = computed(() => store.earningIds.has(props.skill.id))
 
 const cardClass = computed(() => {
-  if (props.skill.milestone && progress.value === 'acquired') return 'tech-node tech-node--acquired-milestone'
-  if (props.skill.milestone) return 'tech-node tech-node--milestone'
-  return `tech-node tech-node--${progress.value}`
+  const state =
+    props.skill.milestone && progress.value === 'acquired' ? 'tech-node--acquired-milestone'
+    : props.skill.milestone ? 'tech-node--milestone'
+    : `tech-node--${progress.value}`
+  return ['tech-node', state, { 'tech-node--earning': isEarning.value }]
 })
 
 const icon = computed(() => {
@@ -48,6 +51,7 @@ const splitName = computed(() => useSplitName(props.skill.name))
     @keydown.enter.prevent="open"
     @keydown.space.prevent="open"
   >
+    <div class="ring" aria-hidden="true" />
     <span v-if="isNew" class="tech-node__badge">New</span>
     <div class="tech-node__top">
       <div class="tech-node__icon" aria-hidden="true">{{ icon }}</div>
@@ -219,5 +223,31 @@ const splitName = computed(() => useSplitName(props.skill.name))
 @keyframes breathe {
   0%, 100% { box-shadow: var(--elev-2), var(--bevel), 0 0 22px -6px rgba(6, 182, 212, 0.55); }
   50%       { box-shadow: var(--elev-3), var(--bevel), 0 0 34px -2px rgba(6, 182, 212, 0.55); }
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-md);
+  pointer-events: none;
+  border: 2px solid var(--color-skill-acquired-border);
+  opacity: 0;
+}
+
+.tech-node--earning {
+  animation: pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tech-node--earning .ring {
+  animation: ring 0.7s ease-out;
+}
+
+@keyframes pop {
+  0%   { transform: scale(1);    }
+  35%  { transform: scale(1.12); }
+  100% { transform: scale(1);    }
+}
+@keyframes ring {
+  0%   { opacity: 0.9; transform: scale(1);   }
+  100% { opacity: 0;   transform: scale(1.4); }
 }
 </style>

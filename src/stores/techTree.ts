@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { skills, skillById, type Skill } from '@/data/skills'
 import { useProfileStore } from './profile'
@@ -56,5 +56,16 @@ export const useTechTreeStore = defineStore('techTree', () => {
     skills.filter((s) => progressOf(s) === 'available').map((s) => s.id),
   )
 
-  return { acquiredIds, progressOf, acquiredDateOf, edges, newlyAvailableIds, currentAvailableIds }
+  const earningIds = ref(new Set<string>())
+
+  function markEarning(id: string) {
+    earningIds.value = new Set([...earningIds.value, id])
+    setTimeout(() => {
+      const next = new Set(earningIds.value)
+      next.delete(id)
+      earningIds.value = next
+    }, 750)
+  }
+
+  return { acquiredIds, progressOf, acquiredDateOf, edges, newlyAvailableIds, currentAvailableIds, earningIds, markEarning }
 })

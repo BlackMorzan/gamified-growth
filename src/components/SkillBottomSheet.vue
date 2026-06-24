@@ -59,6 +59,7 @@ const unmetPrereqs = computed(() => {
 
 function acquire() {
   if (!props.skill) return
+  store.markEarning(props.skill.id)
   profileStore.acquire(props.skill.id, dateInput.value)
   emit('close')
 }
