@@ -1,12 +1,26 @@
 <script setup lang="ts">
+import { onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
+import { useProfileStore } from '@/stores/profile'
 import SkillDomainTabs from '@/components/SkillDomainTabs.vue'
+
+const route = useRoute()
+const profileStore = useProfileStore()
+
+function syncActiveBaby() {
+  const name = route.params.babyName as string
+  if (name) profileStore.setActiveBaby(name)
+}
+
+onMounted(syncActiveBaby)
+watch(() => route.params.babyName, syncActiveBaby)
 </script>
 
 <template>
   <main class="tree-view">
     <header class="tree-header">
       <RouterLink to="/" class="back-link">← Home</RouterLink>
-      <h1 class="tree-title">Skill Tree</h1>
+      <h1 class="tree-title">{{ profileStore.activeBabyName }}</h1>
     </header>
     <SkillDomainTabs />
   </main>

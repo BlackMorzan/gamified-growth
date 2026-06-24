@@ -6,7 +6,13 @@ import { useProfileStore } from './profile'
 export const useTechTreeStore = defineStore('techTree', () => {
   const profileStore = useProfileStore()
 
-  const acquiredIds = computed(() => new Set(profileStore.acquired.map((a) => a.skillId)))
+  const acquiredIds = computed(() => {
+    const babyName = profileStore.activeBabyName
+    if (!babyName) return new Set<string>()
+    return new Set(
+      profileStore.acquired.filter((a) => a.babyName === babyName).map((a) => a.skillId),
+    )
+  })
 
   function progressOf(skill: Skill): 'locked' | 'available' | 'acquired' {
     if (acquiredIds.value.has(skill.id)) return 'acquired'
@@ -15,7 +21,10 @@ export const useTechTreeStore = defineStore('techTree', () => {
   }
 
   function acquiredDateOf(skill: Skill): string | undefined {
-    return profileStore.acquired.find((a) => a.skillId === skill.id)?.acquiredDate
+    const babyName = profileStore.activeBabyName
+    if (!babyName) return undefined
+    return profileStore.acquired.find((a) => a.skillId === skill.id && a.babyName === babyName)
+      ?.acquiredDate
   }
 
   const edges = computed(() =>
@@ -36,7 +45,8 @@ export const useTechTreeStore = defineStore('techTree', () => {
   )
 
   const newlyAvailableIds = computed(() => {
-    const prev = new Set(profileStore.prevSessionAvailableIds)
+    const babyName = profileStore.activeBabyName
+    const prev = new Set(babyName ? (profileStore.prevSessionAvailableIds[babyName] ?? []) : [])
     return new Set(
       skills.filter((s) => progressOf(s) === 'available' && !prev.has(s.id)).map((s) => s.id),
     )

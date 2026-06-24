@@ -7,14 +7,15 @@ const router = createRouter({
   routes: [
     { path: '/', component: HomeView },
     { path: '/setup', component: () => import('../views/ProfileSetupView.vue') },
-    { path: '/tree', component: () => import('../views/SkillTreeView.vue') },
+    { path: '/tree/:babyName', name: 'skill-tree', component: () => import('../views/SkillTreeView.vue') },
   ],
 })
 
 router.beforeEach((to) => {
   const profileStore = useProfileStore()
-  if (to.path === '/tree' && !profileStore.profile) return '/setup'
-  if (to.path === '/setup' && profileStore.profile) return '/tree'
+  const hasBabies = profileStore.babies.length > 0
+  if (!hasBabies && to.path !== '/setup') return '/setup'
+  if (hasBabies && to.path === '/setup') return '/'
 })
 
 export default router

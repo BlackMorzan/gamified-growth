@@ -6,9 +6,8 @@
 // they never copy any static skill fields, so the two can't drift.
 
 /**
- * General profile for the baby. One per app install (Phase 2 has no accounts).
- * `birthDate` drives every age calculation and gates the tree — the tree must
- * not render without it (see CLAUDE.md first-run flow).
+ * Profile for one baby. `name` is the unique key — duplicate names are
+ * rejected at the store level. `birthDate` drives all age calculations.
  */
 export interface BabyProfile {
   name: string
@@ -17,12 +16,13 @@ export interface BabyProfile {
 }
 
 /**
- * A user-input ↔ skill link: one record per skill the parent has marked
- * acquired. `skillId` is a foreign key into a static {@link Skill}.id; the rest
- * is user input. Resolve the full skill via `skillById` / `skillGraph`, never
- * by embedding skill data here.
+ * A user-input ↔ skill link: one record per skill per baby.
+ * `babyName` is a foreign key into `BabyProfile.name`.
+ * `skillId` is a foreign key into `Skill.id` in src/data/skills.ts.
  */
 export interface AcquiredSkill {
+  /** References `BabyProfile.name`. */
+  babyName: string
   /** References `Skill.id` in src/data/skills.ts. */
   skillId: string
   /** ISO 8601 date the parent recorded the acquisition (pre-filled to today). */
@@ -30,15 +30,14 @@ export interface AcquiredSkill {
 }
 
 /**
- * Root shape of everything persisted to localStorage. `version` exists so the
- * storage layer (M2) can migrate or safely discard old/corrupt shapes rather
- * than trusting a raw `JSON.parse`. M2 owns read/write + validation; this is
- * only the type they share.
+ * Root shape of everything persisted to localStorage.
+ * version 1 → single profile; version 2 → babies list + babyName on each acquired skill.
+ * The storage layer migrates v1 to v2 on first load; v1 is never written back.
  */
 export interface PersistedUserData {
-  version: 1
-  profile: BabyProfile | null
+  version: 2
+  babies: BabyProfile[]
   acquired: AcquiredSkill[]
-  /** Snapshot of available skill IDs at the end of the previous session — used to compute new-badge diff on next visit. */
-  prevSessionAvailableIds: string[]
+  /** Per-baby snapshot of available skill IDs at session end — drives the "new" badge diff. */
+  prevSessionAvailableIds: Record<string, string[]>
 }

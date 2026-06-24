@@ -28,6 +28,7 @@ beforeEach(() => {
   localStorageMock.clear()
   vi.stubGlobal('localStorage', localStorageMock)
   setActivePinia(createPinia())
+  useProfileStore().setActiveBaby('test-baby')
 })
 
 // ---------------------------------------------------------------------------

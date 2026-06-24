@@ -14,15 +14,19 @@ const birthDateError = ref('')
 function validate(): boolean {
   nameError.value = ''
   birthDateError.value = ''
-  if (!name.value.trim()) nameError.value = 'Baby name is required'
+  if (!name.value.trim()) {
+    nameError.value = 'Baby name is required'
+  } else if (profileStore.babies.some((b) => b.name === name.value.trim())) {
+    nameError.value = 'A baby with this name already exists'
+  }
   if (!birthDate.value) birthDateError.value = 'Birth date is required'
   return !nameError.value && !birthDateError.value
 }
 
 function submit() {
   if (!validate()) return
-  profileStore.setProfile({ name: name.value.trim(), birthDate: birthDate.value })
-  router.push('/tree')
+  profileStore.addBaby(name.value.trim(), birthDate.value)
+  router.push('/')
 }
 </script>
 
