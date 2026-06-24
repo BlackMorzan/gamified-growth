@@ -6,7 +6,9 @@ const props = defineProps<{
   progress: 'locked' | 'available' | 'acquired'
 }>()
 
-const connPath = ref<SVGPathElement | null>(null)
+const connPath  = ref<SVGPathElement | null>(null)
+const burstRing = ref<SVGCircleElement | null>(null)
+const burstDot  = ref<SVGCircleElement | null>(null)
 
 // 4 trail segments, all ending at the head. Lengths are cumulative from head.
 // Rendered back-to-front so the brightest (innermost) paints last on top.
@@ -28,16 +30,18 @@ const DURATION   = 5000
 const T_FADE_IN  = 0.06
 const T_TRAVEL   = 0.36
 const T_FADE_OUT = 0.44
+const T_BURST    = 0.07  // burst lasts 7% of cycle (~350ms)
 
 let raf = 0
 let pathLen = 200
 let mountTime = 0
+let endX = 0
+let endY = 0
 
 function tick(now: number) {
   const t = ((now - mountTime) % DURATION) / DURATION
 
   let baseOpacity = 0
-  let baseOffset  = 0  // computed per-trail below
 
   if (t < T_FADE_IN) {
     baseOpacity = t / T_FADE_IN
@@ -55,17 +59,44 @@ function tick(now: number) {
     const el = trailRefs[i].value
     if (!el) continue
     const { len, opacityScale } = TRAILS[i]
-    baseOffset = len - p * pathLen
-    el.setAttribute('stroke-dashoffset', String(Math.round(baseOffset)))
+    el.setAttribute('stroke-dashoffset', String(Math.round(len - p * pathLen)))
     el.style.opacity = String(baseOpacity * opacityScale)
+  }
+
+  // Burst ring: expands from r=4 to r=14, fades out over T_BURST window
+  const ring = burstRing.value
+  const dot  = burstDot.value
+  if (ring && dot) {
+    if (t >= T_TRAVEL && t < T_TRAVEL + T_BURST) {
+      const bp = (t - T_TRAVEL) / T_BURST
+      ring.setAttribute('r', String(4 + bp * 10))
+      ring.style.opacity = String((1 - bp) * 0.9)
+      dot.setAttribute('r', String(4 - bp * 2.5))
+      dot.style.opacity = String(1 - bp * 2)  // fades twice as fast
+    } else {
+      ring.style.opacity = '0'
+      dot.style.opacity  = '0'
+    }
   }
 
   raf = requestAnimationFrame(tick)
 }
 
+function updateEndpoint() {
+  if (!connPath.value) return
+  const pt = connPath.value.getPointAtLength(pathLen)
+  endX = pt.x
+  endY = pt.y
+  burstRing.value?.setAttribute('cx', String(endX))
+  burstRing.value?.setAttribute('cy', String(endY))
+  burstDot.value?.setAttribute('cx', String(endX))
+  burstDot.value?.setAttribute('cy', String(endY))
+}
+
 function startAnim() {
   cancelAnimationFrame(raf)
-  pathLen   = connPath.value?.getTotalLength() ?? 200
+  pathLen = connPath.value?.getTotalLength() ?? 200
+  updateEndpoint()
   mountTime = performance.now()
   for (let i = 0; i < TRAILS.length; i++) {
     const el = trailRefs[i].value
@@ -86,7 +117,10 @@ watch(() => props.progress, async (p) => {
 })
 
 watch(() => props.d, () => {
-  if (connPath.value) pathLen = connPath.value.getTotalLength()
+  if (connPath.value) {
+    pathLen = connPath.value.getTotalLength()
+    updateEndpoint()
+  }
 })
 
 onUnmounted(() => cancelAnimationFrame(raf))
@@ -105,6 +139,9 @@ onUnmounted(() => cancelAnimationFrame(raf))
     <path :ref="(el) => { trailRefs[2].value = el as SVGPathElement }" :d="d" class="pulse-trail" fill="none" />
     <path :ref="(el) => { trailRefs[3].value = el as SVGPathElement }" :d="d" class="pulse-trail" fill="none" />
     <circle class="pulse-head" r="3.5" :style="`offset-path: path('${d}')`" />
+    <!-- burst at path end -->
+    <circle ref="burstRing" class="burst-ring" fill="none" />
+    <circle ref="burstDot"  class="burst-dot" />
   </g>
   <path v-else :d="d" :class="`conn conn--${progress}`" fill="none" stroke-width="2" />
 </template>
@@ -145,6 +182,19 @@ onUnmounted(() => cancelAnimationFrame(raf))
   filter: drop-shadow(0 0 3px var(--color-accent)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.7));
   offset-distance: 0%;
   animation: comet 5s linear infinite;
+}
+
+.burst-ring {
+  stroke: var(--color-accent);
+  stroke-width: 1.5;
+  opacity: 0;
+  filter: drop-shadow(0 0 5px rgba(6, 182, 212, 0.9));
+}
+
+.burst-dot {
+  fill: #ffffff;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 1));
 }
 
 @keyframes comet {
