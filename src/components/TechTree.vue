@@ -61,55 +61,43 @@ function tierX(tier: number): number {
   return (tier - 1) * COL_WIDTH + (COL_WIDTH - CARD_WIDTH) / 2
 }
 
-type EdgeSegment = {
+type EdgeEntry = {
   id: string
-  x1: number
-  y1: number
-  x2: number
-  y2: number
+  d: string
   progress: 'locked' | 'available' | 'acquired'
 }
 
-// For edges that skip tiers, split into alternating between-card beziers and
-// through-card lines. All waypoints sit at to's row; the first bezier handles
-// any row transition. Overlap avoidance is a data-authoring concern.
-const edgeSegments = computed((): EdgeSegment[] => {
-  const segs: EdgeSegment[] = []
+// One stitched path per logical edge. For tier-skipping edges the vertical drop
+// lands in the first inter-tier gap; the rest of the run is horizontal at y2.
+// Hard 90° bends (no bezier radius) so the blob travels one continuous path.
+const edges = computed((): EdgeEntry[] => {
+  const result: EdgeEntry[] = []
   for (const edge of domainEdges.value) {
     const y1 = nodeY(edge.from) + CARD_HEIGHT / 2
     const y2 = nodeY(edge.to) + CARD_HEIGHT / 2
-    const tierDiff = edge.to.tier - edge.from.tier
+    const x1 = tierX(edge.from.tier) + CARD_WIDTH
+    const x2 = tierX(edge.to.tier)
 
-    for (let k = 0; k < tierDiff; k++) {
-      const fromTier = edge.from.tier + k
-      // only the first segment starts at from's row; the rest travel along to's row
-      const segY1 = k === 0 ? y1 : y2
-
-      // between-card bezier
-      segs.push({
-        id: `${edge.id}_b${k}`,
-        x1: tierX(fromTier) + CARD_WIDTH,
-        y1: segY1,
-        x2: tierX(fromTier + 1),
-        y2,
-        progress: edge.fromProgress as EdgeSegment['progress'],
-      })
-
-      // through-card line for each intermediate simulated card
-      if (k < tierDiff - 1) {
-        segs.push({
-          id: `${edge.id}_t${k}`,
-          x1: tierX(fromTier + 1),
-          y1: y2,
-          x2: tierX(fromTier + 1) + CARD_WIDTH,
-          y2,
-          progress: edge.fromProgress as EdgeSegment['progress'],
-        })
-      }
+    let d: string
+    if (Math.abs(y2 - y1) < 1) {
+      d = `M ${x1},${y1} L ${x2},${y2}`
+    } else {
+      const r = 12
+      const vDir = y2 > y1 ? 1 : -1
+      // bend sits halfway through the first inter-tier gap; remainder is a
+      // straight horizontal run so no second bend is needed for tier-skipping edges
+      const midX = (x1 + tierX(edge.from.tier + 1)) / 2
+      d = `M ${x1},${y1} L ${midX - r},${y1} Q ${midX},${y1} ${midX},${y1 + r * vDir} L ${midX},${y2 - r * vDir} Q ${midX},${y2} ${midX + r},${y2} L ${x2},${y2}`
     }
+
+    result.push({
+      id: edge.id,
+      d,
+      progress: edge.fromProgress as EdgeEntry['progress'],
+    })
   }
   const order = { acquired: 0, available: 1, locked: 2 }
-  return segs.sort((a, b) => order[a.progress] - order[b.progress])
+  return result.sort((a, b) => order[a.progress] - order[b.progress])
 })
 
 function nodeStyle(skill: Skill) {
@@ -209,13 +197,10 @@ onUnmounted(() => {
         aria-hidden="true"
       >
         <TechConnection
-          v-for="seg in edgeSegments"
-          :key="seg.id"
-          :x1="seg.x1"
-          :y1="seg.y1"
-          :x2="seg.x2"
-          :y2="seg.y2"
-          :progress="seg.progress"
+          v-for="edge in edges"
+          :key="edge.id"
+          :d="edge.d"
+          :progress="edge.progress"
         />
       </svg>
 

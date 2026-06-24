@@ -1,39 +1,95 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 const props = defineProps<{
-  x1: number
-  y1: number
-  x2: number
-  y2: number
+  d: string
   progress: 'locked' | 'available' | 'acquired'
 }>()
 
-const d = computed(() => {
-  const dx = props.x2 - props.x1
-  const dy = props.y2 - props.y1
+const connPath = ref<SVGPathElement | null>(null)
 
-  const radius = 12 // fixed corner radius, same for every connector
-  const direction = dx >= 0 ? 1 : -1 // handle right-to-left edges
-  const vDirection = dy >= 0 ? 1 : -1 // handle upward vs downward edges
+// 4 trail segments, all ending at the head. Lengths are cumulative from head.
+// Rendered back-to-front so the brightest (innermost) paints last on top.
+const TRAILS = [
+  { len: 20, opacityScale: 0.20 },  // outermost — weakest
+  { len: 15, opacityScale: 0.40 },
+  { len: 10, opacityScale: 0.65 },
+  { len:  5, opacityScale: 1.00 },  // innermost — brightest
+]
 
-  // midpoint where the vertical segment sits
-  const midX = (props.x1 + props.x2) / 2
+const trailRefs = [
+  ref<SVGPathElement | null>(null),
+  ref<SVGPathElement | null>(null),
+  ref<SVGPathElement | null>(null),
+  ref<SVGPathElement | null>(null),
+]
 
-  // if nodes are basically level, just draw a straight line
-  if (Math.abs(dy) < 1) {
-    return `M ${props.x1},${props.y1} L ${props.x2},${props.y2}`
+const DURATION   = 5000
+const T_FADE_IN  = 0.06
+const T_TRAVEL   = 0.36
+const T_FADE_OUT = 0.44
+
+let raf = 0
+let pathLen = 200
+let mountTime = 0
+
+function tick(now: number) {
+  const t = ((now - mountTime) % DURATION) / DURATION
+
+  let baseOpacity = 0
+  let baseOffset  = 0  // computed per-trail below
+
+  if (t < T_FADE_IN) {
+    baseOpacity = t / T_FADE_IN
+  } else if (t < T_TRAVEL) {
+    baseOpacity = 1
+  } else if (t < T_FADE_OUT) {
+    baseOpacity = 1 - (t - T_TRAVEL) / (T_FADE_OUT - T_TRAVEL)
   }
 
-  return `
-    M ${props.x1},${props.y1}
-    L ${midX - radius * direction},${props.y1}
-    Q ${midX},${props.y1} ${midX},${props.y1 + radius * vDirection}
-    L ${midX},${props.y2 - radius * vDirection}
-    Q ${midX},${props.y2} ${midX + radius * direction},${props.y2}
-    L ${props.x2},${props.y2}
-  `.trim().replace(/\s+/g, ' ')
+  const p = t < T_FADE_IN ? 0
+          : t < T_TRAVEL  ? (t - T_FADE_IN) / (T_TRAVEL - T_FADE_IN)
+          : 1
+
+  for (let i = 0; i < TRAILS.length; i++) {
+    const el = trailRefs[i].value
+    if (!el) continue
+    const { len, opacityScale } = TRAILS[i]
+    baseOffset = len - p * pathLen
+    el.setAttribute('stroke-dashoffset', String(Math.round(baseOffset)))
+    el.style.opacity = String(baseOpacity * opacityScale)
+  }
+
+  raf = requestAnimationFrame(tick)
+}
+
+function startAnim() {
+  cancelAnimationFrame(raf)
+  pathLen   = connPath.value?.getTotalLength() ?? 200
+  mountTime = performance.now()
+  for (let i = 0; i < TRAILS.length; i++) {
+    const el = trailRefs[i].value
+    if (!el) continue
+    el.setAttribute('stroke-dasharray',  `${TRAILS[i].len} 10000`)
+    el.setAttribute('stroke-dashoffset', String(TRAILS[i].len))
+  }
+  raf = requestAnimationFrame(tick)
+}
+
+onMounted(() => {
+  if (props.progress === 'available') startAnim()
 })
+
+watch(() => props.progress, async (p) => {
+  if (p === 'available') { await nextTick(); startAnim() }
+  else cancelAnimationFrame(raf)
+})
+
+watch(() => props.d, () => {
+  if (connPath.value) pathLen = connPath.value.getTotalLength()
+})
+
+onUnmounted(() => cancelAnimationFrame(raf))
 </script>
 
 <template>
@@ -42,13 +98,13 @@ const d = computed(() => {
     <path :d="d" class="conn conn--locked" fill="none" />
   </g>
   <g v-else-if="progress === 'available'">
-    <path :d="d" class="conn conn--available" fill="none" stroke-width="2" />
-    <g class="pulse">
-      <circle class="blob trail t3" r="1.2" :style="`offset-path: path('${d}')`" />
-      <circle class="blob trail t2" r="1.7" :style="`offset-path: path('${d}')`" />
-      <circle class="blob trail t1" r="2.3" :style="`offset-path: path('${d}')`" />
-      <circle class="blob"          r="3.2" :style="`offset-path: path('${d}')`" />
-    </g>
+    <path ref="connPath" :d="d" class="conn conn--available" fill="none" stroke-width="2" />
+    <!-- trails rendered back-to-front: outermost first, innermost last -->
+    <path :ref="(el) => { trailRefs[0].value = el as SVGPathElement }" :d="d" class="pulse-trail" fill="none" />
+    <path :ref="(el) => { trailRefs[1].value = el as SVGPathElement }" :d="d" class="pulse-trail" fill="none" />
+    <path :ref="(el) => { trailRefs[2].value = el as SVGPathElement }" :d="d" class="pulse-trail" fill="none" />
+    <path :ref="(el) => { trailRefs[3].value = el as SVGPathElement }" :d="d" class="pulse-trail" fill="none" />
+    <circle class="pulse-head" r="3.5" :style="`offset-path: path('${d}')`" />
   </g>
   <path v-else :d="d" :class="`conn conn--${progress}`" fill="none" stroke-width="2" />
 </template>
@@ -77,32 +133,25 @@ const d = computed(() => {
   filter: drop-shadow(0 0 3px rgba(66, 168, 115, 0.55));
 }
 
-.blob {
-  fill: #bfe6ff;
-  filter: drop-shadow(0 0 3px var(--color-accent)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.55));
+.pulse-trail {
+  stroke: #bfe6ff;
+  stroke-width: 3;
+  opacity: 0;
+  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.6));
+}
+
+.pulse-head {
+  fill: #dff0ff;
+  filter: drop-shadow(0 0 3px var(--color-accent)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.7));
   offset-distance: 0%;
-  animation: comet 4.2s ease-in-out infinite;
+  animation: comet 5s linear infinite;
 }
-.blob.trail {
-  filter: drop-shadow(0 0 4px rgba(6, 182, 212, 0.55));
-  animation-name: comet-trail;
-}
-.blob.t1 { animation-delay: 0.05s; }
-.blob.t2 { animation-delay: 0.10s; }
-.blob.t3 { animation-delay: 0.15s; }
 
 @keyframes comet {
   0%   { offset-distance: 0%;   opacity: 0; }
-  6%   { opacity: 1; }
-  26%  { offset-distance: 100%; opacity: 1; }
-  32%  { opacity: 0; }
+  6%   { offset-distance: 0%;   opacity: 1; }
+  36%  { offset-distance: 100%; opacity: 1; }
+  44%  { offset-distance: 100%; opacity: 0; }
   100% { offset-distance: 100%; opacity: 0; }
-}
-@keyframes comet-trail {
-  0%   { offset-distance: 0%;   opacity: 0;   }
-  6%   { opacity: 0.45; }
-  26%  { offset-distance: 100%; opacity: 0.45; }
-  32%  { opacity: 0; }
-  100% { offset-distance: 100%; opacity: 0;   }
 }
 </style>
