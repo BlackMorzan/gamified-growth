@@ -47,6 +47,11 @@
   --color-success-text:  #5bbf7a;
   --color-disabled:      #3a3a52;
 
+  --color-domain-physical:  #06b6d4;  /* physical_motor — reuses --color-accent */
+  --color-domain-cognitive: #f5a623;  /* cognitive      — reuses --color-accent-gold */
+  --color-domain-language:  #5bbf7a;  /* language_communication — reuses --color-success-text */
+  --color-domain-social:    #e94560;  /* social_emotional — reuses --color-error */
+
   --color-text:          #eaeaea;
   --color-text-muted:    #aab3c4;  /* AA (≥4.5:1) on all card fills incl. hover #1e4280 */
   --color-text-locked:   #909aab;  /* AA (4.68:1) on locked card #2d2d48 */
