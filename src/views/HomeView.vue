@@ -50,6 +50,7 @@ function progressFor(babyName: string) {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background: radial-gradient(ellipse 120% 50% at 50% 0%, rgba(6, 182, 212, 0.04) 0%, transparent 70%);
 }
 
 .home__header {
@@ -63,6 +64,7 @@ function progressFor(babyName: string) {
   font-size: 28px;
   letter-spacing: 0.05em;
   color: var(--color-text);
+  text-shadow: 0 0 28px rgba(6, 182, 212, 0.25);
 }
 
 .add-btn {
@@ -100,6 +102,10 @@ function progressFor(babyName: string) {
   font-size: 14px;
   color: var(--color-text-muted);
   text-align: center;
-  padding: var(--space-8) 0;
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--elev-1), var(--bevel);
 }
 </style>

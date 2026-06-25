@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { BabyProfile } from '@/types/user'
 import type { DomainProgress } from '@/composables/useBabyProgress'
 import { formatAge } from '@/utils/age'
@@ -10,8 +11,13 @@ const props = defineProps<{
   index: number
 }>()
 
+const router = useRouter()
 const mounted = ref(false)
 onMounted(() => { requestAnimationFrame(() => { mounted.value = true }) })
+
+function goToTree(domain?: string) {
+  router.push({ name: 'skill-tree', params: { babyName: props.baby.name }, query: domain ? { domain } : {} })
+}
 
 const DOMAIN_COLOR: Record<string, string> = {
   physical_motor: 'var(--color-domain-physical)',
@@ -22,10 +28,13 @@ const DOMAIN_COLOR: Record<string, string> = {
 </script>
 
 <template>
-  <RouterLink
+  <div
     class="baby-card"
-    :to="{ name: 'skill-tree', params: { babyName: baby.name } }"
+    role="link"
+    tabindex="0"
     :style="{ animationDelay: `${props.index * 60}ms` }"
+    @click="goToTree()"
+    @keydown.enter.prevent="goToTree()"
   >
     <div class="baby-card__header">
       <span class="baby-card__name">{{ baby.name }}</span>
@@ -33,30 +42,34 @@ const DOMAIN_COLOR: Record<string, string> = {
     </div>
 
     <div class="baby-card__grid">
-      <div
+      <button
         v-for="d in progress"
         :key="d.domain"
         class="domain-btn"
+        :style="{ '--domain-color': DOMAIN_COLOR[d.domain] }"
+        :aria-label="`${d.label}: ${d.acquired} of ${d.total} skills`"
+        @click.stop="goToTree(d.domain)"
       >
         <div
           class="domain-btn__fill"
-          :style="{ width: mounted ? d.pct + '%' : '0%', background: DOMAIN_COLOR[d.domain] }"
+          :style="{ width: mounted ? d.pct + '%' : '0%' }"
         />
         <span class="domain-btn__label">{{ d.label }}</span>
         <span class="domain-btn__count">{{ d.acquired }}/{{ d.total }}</span>
-      </div>
+      </button>
     </div>
-  </RouterLink>
+  </div>
 </template>
 
 <style scoped>
 .baby-card {
   display: block;
-  background: var(--color-surface);
+  background: linear-gradient(180deg, var(--color-surface), #131b35);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: var(--space-4);
-  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--elev-2), var(--bevel);
   transition: border-color 0.2s, box-shadow 0.2s;
   animation: card-enter 0.35s ease both;
 }
@@ -75,7 +88,7 @@ const DOMAIN_COLOR: Record<string, string> = {
 .baby-card:hover,
 .baby-card:focus-visible {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.25);
+  box-shadow: var(--elev-3), var(--bevel), 0 0 26px -4px rgba(6, 182, 212, 0.35);
   outline: none;
 }
 
@@ -110,11 +123,15 @@ const DOMAIN_COLOR: Record<string, string> = {
   overflow: hidden;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border-subtle);
-  background: var(--color-surface-deep);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(0, 0, 0, 0.18) 100%),
+    var(--color-surface-deep);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-3);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.5), var(--bevel);
+  cursor: pointer;
+  font-family: var(--font-body);
   transition: border-color 0.15s;
 }
 
@@ -125,7 +142,9 @@ const DOMAIN_COLOR: Record<string, string> = {
 .domain-btn__fill {
   position: absolute;
   inset: 0;
-  opacity: 0.28;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(0, 0, 0, 0.15) 100%),
+    var(--domain-color);
+  opacity: 0.32;
   transition: width 0.6s ease;
 }
 
