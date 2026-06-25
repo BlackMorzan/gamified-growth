@@ -1,18 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { SkillDomain } from '@/data/skills'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { skills, type SkillDomain } from '@/data/skills'
+import { useTechTreeStore } from '@/stores/techTree'
 import TechTree from './TechTree.vue'
 
-type Tab = { domain: SkillDomain; label: string }
+type Tab = { domain: SkillDomain; label: string; color: string }
 
 const tabs: Tab[] = [
-  { domain: 'physical_motor', label: 'Physical & Motor' },
-  { domain: 'cognitive', label: 'Cognitive' },
-  { domain: 'language_communication', label: 'Language & Communication' },
-  { domain: 'social_emotional', label: 'Social & Emotional' },
+  { domain: 'physical_motor',        label: 'Physical & Motor',      color: 'var(--color-domain-physical)'  },
+  { domain: 'cognitive',             label: 'Cognitive',             color: 'var(--color-domain-cognitive)' },
+  { domain: 'language_communication',label: 'Language & Comm.',      color: 'var(--color-domain-language)'  },
+  { domain: 'social_emotional',      label: 'Social & Emotional',    color: 'var(--color-domain-social)'    },
 ]
 
-const activeIndex = ref(0)
+const store = useTechTreeStore()
+const domainPct = computed(() =>
+  tabs.map((tab) => {
+    const total = skills.filter((s) => s.domain === tab.domain).length
+    const acquired = skills.filter((s) => s.domain === tab.domain && store.acquiredIds.has(s.id)).length
+    return total > 0 ? Math.floor((acquired / total) * 100) : 0
+  }),
+)
+
+const route = useRoute()
+const initialIndex = tabs.findIndex((t) => t.domain === route.query.domain)
+const activeIndex = ref(initialIndex >= 0 ? initialIndex : 0)
+
+const mounted = ref(false)
+onMounted(() => { requestAnimationFrame(() => { mounted.value = true }) })
 </script>
 
 <template>
@@ -28,6 +44,11 @@ const activeIndex = ref(0)
         :class="['tab-btn', { active: i === activeIndex }]"
         @click="activeIndex = i"
       >
+        <div
+          class="tab-progress"
+          :style="{ width: mounted ? `${domainPct[i]}%` : '0%', background: tab.color }"
+          aria-hidden="true"
+        />
         {{ tab.label }}
       </button>
     </div>
@@ -64,6 +85,8 @@ const activeIndex = ref(0)
 
 .tab-btn {
   flex: 1;
+  position: relative;
+  overflow: hidden;
   padding: var(--space-2) var(--space-2);
   background: none;
   border: none;
@@ -79,6 +102,16 @@ const activeIndex = ref(0)
   line-height: 1.3;
   transition: color 0.15s, border-color 0.15s;
   box-shadow: inset 14px 0 16px -8px rgba(0,0,0,0.6), inset -14px 0 16px -8px rgba(0,0,0,0.6);
+}
+
+.tab-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 3px;
+  border-radius: 0 2px 2px 0;
+  opacity: 0.7;
+  transition: width 0.6s ease;
 }
 
 .tab-btn:hover {
