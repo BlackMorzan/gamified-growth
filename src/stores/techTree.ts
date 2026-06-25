@@ -36,7 +36,11 @@ export const useTechTreeStore = defineStore('techTree', () => {
           id: `${prereqId}->${skill.id}`,
           from: fromSkill,
           to: skill,
-          fromProgress: fromProg === 'acquired' ? progressOf(skill) : 'locked',
+          fromProgress: (() => {
+            if (fromProg !== 'acquired') return 'locked'
+            const toP = progressOf(skill)
+            return toP === 'locked' ? 'partial-available' : toP
+          })(),
         }
       }),
     ),

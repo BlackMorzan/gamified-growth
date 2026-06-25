@@ -64,7 +64,7 @@ function tierX(tier: number): number {
 type EdgeEntry = {
   id: string
   d: string
-  progress: 'locked' | 'available' | 'acquired'
+  progress: 'locked' | 'available' | 'acquired' | 'partial-available'
 }
 
 // One stitched path per logical edge. For tier-skipping edges the vertical drop
@@ -96,7 +96,7 @@ const edges = computed((): EdgeEntry[] => {
       progress: edge.fromProgress as EdgeEntry['progress'],
     })
   }
-  const order = { acquired: 0, available: 1, locked: 2 }
+  const order = { acquired: 0, available: 1, 'partial-available': 2, locked: 3 }
   return result.sort((a, b) => order[a.progress] - order[b.progress])
 })
 

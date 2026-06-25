@@ -28,7 +28,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 const props = defineProps<{
   d: string
-  progress: 'locked' | 'available' | 'acquired'
+  progress: 'locked' | 'available' | 'acquired' | 'partial-available'
 }>()
 
 const connPath  = ref<SVGPathElement | null>(null)
@@ -82,9 +82,9 @@ function tick(now: number) {
   const p = travelProgress(t)
 
   for (let i = 0; i < TRAILS.length; i++) {
-    const el = trailRefs[i].value
+    const el = trailRefs[i]!.value
     if (!el) continue
-    const { len, opacityScale } = TRAILS[i]
+    const { len, opacityScale } = TRAILS[i]!
     // Slide the dash so its leading edge sits at distance `p * pathLen` along the path.
     el.setAttribute('stroke-dashoffset', String(Math.round(len - p * pathLen)))
     el.style.opacity = String(opacity * opacityScale)
@@ -126,10 +126,10 @@ function startAnim() {
   mountTime = performance.now()
   // Give each trail its dash shape and park it off the start of the path.
   for (let i = 0; i < TRAILS.length; i++) {
-    const el = trailRefs[i].value
+    const el = trailRefs[i]!.value
     if (!el) continue
-    el.setAttribute('stroke-dasharray',  `${TRAILS[i].len} 10000`)
-    el.setAttribute('stroke-dashoffset', String(TRAILS[i].len))
+    el.setAttribute('stroke-dasharray',  `${TRAILS[i]!.len} 10000`)
+    el.setAttribute('stroke-dashoffset', String(TRAILS[i]!.len))
   }
   raf = requestAnimationFrame(tick)
 }
@@ -143,6 +143,7 @@ watch(() => props.progress, async (p) => {
   if (p === 'available') { await nextTick(); startAnim() }
   else cancelAnimationFrame(raf)
 })
+
 
 // Path reshaped: re-measure length and re-anchor the burst.
 watch(() => props.d, () => {
@@ -172,6 +173,10 @@ onUnmounted(() => cancelAnimationFrame(raf))
     <circle ref="burstRing" class="burst-ring" fill="none" />
     <circle ref="burstDot"  class="burst-dot" />
   </g>
+  <g v-else-if="progress === 'partial-available'">
+    <path :d="d" class="conn conn--partial-available-erase" fill="none" />
+    <path :d="d" class="conn conn--partial-available" fill="none" stroke-width="2" />
+  </g>
   <path v-else :d="d" :class="`conn conn--${progress}`" fill="none" stroke-width="2" />
 </template>
 
@@ -197,6 +202,16 @@ onUnmounted(() => cancelAnimationFrame(raf))
 .conn--acquired {
   stroke: var(--color-skill-acquired-border);
   filter: drop-shadow(0 0 3px rgba(66, 168, 115, 0.55));
+}
+.conn--partial-available-erase {
+  stroke: var(--color-bg);
+  stroke-width: 3;
+  opacity: 0.7;
+}
+.conn--partial-available {
+  stroke: var(--color-accent);
+  opacity: 0.45;
+  filter: drop-shadow(0 0 3px rgba(6, 182, 212, 0.3));
 }
 
 .pulse-trail {
