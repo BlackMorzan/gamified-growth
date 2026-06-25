@@ -161,6 +161,55 @@ Every skill node must visually communicate its state at a glance:
 - **Mark-as-acquired flow** — must complete in ≤3 taps. Pre-fill today's date, allow override. After confirm: animate card state change + reveal newly unlocked skills.
 - **Lock icon context** — in Phase 2, all locked skills use the same visual. Add "requires: [skill name]" on tap for locked cards. Post-Phase 2: consider a distinct visual for skills where baby is within `typical_age_months` but prerequisites unmet (different emotional register from far-future locked skills).
 - **Newly-available highlight** — on session end, `useProfileStore.saveSessionSnapshot(availableIds)` writes `prevSessionAvailableIds` (a `string[]`) to `PersistedUserData` in localStorage. On next visit, `useTechTreeStore.newlyAvailableIds` diffs current available set against that snapshot. Skills that became available since last visit get a transient "new" badge. Implemented and shipped in Phase 2b.
+- **Connector `partial-available` state** — when a prerequisite is acquired but its child is still locked, the wire renders as a dim teal stroke (not full available, not fully dim). Implemented in `TechConnection.vue` + `techTree.ts` edge computation.
+- **"Requires" box** — in `SkillBottomSheet.vue`, the prerequisite block uses `--color-surface-deep` background with a subtle border-left — neutral/informational, never error red.
+
+---
+
+### Animation & Motion (proven patterns — do not deviate)
+
+**GPU compositing — never on resting elements:**
+- No `translateZ()` / `perspective` — permanently promotes to GPU; text blurs on Windows
+- No `will-change: transform` — same effect
+- No `filter: blur/saturate/brightness` on groups of nodes — compositing layer per element
+- `scale()` on `:hover` only — transient GPU layer during transition, immediately released at rest
+
+**What works for depth (CPU path, text stays sharp):**
+- `box-shadow` with `--elev-1/2/3` + `--bevel` tokens
+- Coloured outer glow via `box-shadow` (teal/green/gold per state, inline rgba derived from token)
+- `opacity` for locked recession
+- `linear-gradient` backgrounds for available/acquired states
+- Board vignette via `::after` pseudo + `radial-gradient` + `pointer-events: none`
+
+**Touch/pointer split:**
+- All hover-scale effects must be inside `@media (hover: hover)` — prevents fighting pan/zoom on mobile
+
+**Reduced motion (not yet done — required for Phase 2c):**
+- Every animation must be wrapped in `@media (prefers-reduced-motion: reduce)` to kill breathe/comet/pop/card-enter/scale
+- Static depth (shadows, bevel, glows, opacity) must survive with motion off — depth is content, motion is polish
+
+**SVG path animations (proven in `TechConnection.vue`):**
+- When animation depends on measured path length (`getTotalLength()`), use `requestAnimationFrame` — not pure CSS keyframes — because length is runtime-only and changes when layout changes
+- `offset-path: path('...')` for CSS motion must receive the exact same `d` string as the `<path>` element — bind it via `:style` inline on the animated element
+- Comet trail: multiple `<path>` copies, each with `stroke-dasharray: "len 10000"` + `stroke-dashoffset` slid per frame. Shorter, brighter segments rendered last (on top) to fake taper.
+- Burst at path end: two `<circle>` elements (`burstRing`, `burstDot`) pinned to `getPointAtLength(totalLength)` and driven by the same RAF loop
+
+**One-shot unlock animation:**
+- Add a reactive `Set<string>` flag (e.g. `earningIds`) in the store; set the id on acquire, clear after `750ms` via `setTimeout`
+- Bind as a class: `{ 'tech-node--earning': isEarning }` — never touch raw `classList`
+- Pattern: pop keyframe (scale 1 → 1.12 → 1) + expanding ring (opacity 0.9 → 0, scale 1 → 1.4)
+
+**Mount-from-zero transitions:**
+- Use an `onMounted` flag (+ optional inner `requestAnimationFrame` for first-paint safety) to trigger CSS `transition` from initial `0` value
+- Example: progress bar fill starts at `width: 0%`, transitions to `width: {pct}%` after mount
+
+**Staggered list entry:**
+- Pass `index` prop, bind `:style="{ animationDelay: \`${index * 60}ms\` }"` on the root element
+- Use `animation-fill-mode: both` so off-screen cards stay invisible until their slot fires
+
+**Typography — uppercase:**
+- `text-transform: uppercase` is fine for very short labels (1–2 words, ≤15 chars) with `letter-spacing: 0.06em`
+- Avoid it for long domain/category labels (e.g. "Language & Communication") — use sentence case at normal letter-spacing instead
 
 ---
 
