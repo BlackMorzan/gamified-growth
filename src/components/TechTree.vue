@@ -20,6 +20,20 @@ const viewportEl = ref<HTMLElement | null>(null)
 
 const panZoom = usePanZoom()
 
+panZoom.setBoundsGetter(() => {
+  const s = panZoom.scale.value
+  const viewW = viewportEl.value?.clientWidth ?? window.innerWidth
+  const viewH = viewportEl.value?.clientHeight ?? window.innerHeight
+  const scaledW = canvasWidth.value * s
+  const scaledH = canvasHeight.value * s
+  return {
+    minX: scaledW >= viewW ? viewW - scaledW : (viewW - scaledW) / 2,
+    maxX: scaledW >= viewW ? 0 : (viewW - scaledW) / 2,
+    minY: scaledH >= viewH ? viewH - scaledH : 0,
+    maxY: 0,
+  }
+})
+
 const COL_WIDTH = 200
 const ROW_HEIGHT = 120
 const CARD_WIDTH = 140
@@ -166,6 +180,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  panZoom.cancelInertia()
   const el = viewportEl.value
   if (!el) return
   el.removeEventListener('touchstart', panZoom.onTouchStart)
