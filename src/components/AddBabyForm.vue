@@ -153,7 +153,7 @@ function save() {
 .btn {
   padding: var(--space-2) var(--space-5);
   border-radius: var(--radius-sm);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;

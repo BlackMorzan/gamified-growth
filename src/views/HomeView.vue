@@ -73,7 +73,7 @@ function progressFor(babyName: string) {
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-sm);
   color: var(--color-accent);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
