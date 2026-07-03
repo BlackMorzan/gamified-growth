@@ -113,7 +113,7 @@ const edges = computed((): EdgeEntry[] => {
       progress: edge.fromProgress as EdgeEntry['progress'],
     })
   }
-  const order = { acquired: 0, available: 1, 'partial-available': 2, locked: 3 }
+  const order = { 'partial-available': 0, locked: 1, acquired: 2, available: 3 }
   return result.sort((a, b) => order[a.progress] - order[b.progress])
 })
 
