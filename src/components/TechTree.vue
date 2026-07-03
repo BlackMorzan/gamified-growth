@@ -20,6 +20,14 @@ const viewportEl = ref<HTMLElement | null>(null)
 
 const panZoom = usePanZoom()
 
+const COL_WIDTH = 200
+const ROW_HEIGHT = 96
+const CARD_WIDTH = 140
+const CARD_HEIGHT = 72
+// Extra downward scroll beyond canvas bottom so the earn animation (pop 1.12× + ring 1.4×
+// clipped to card) is fully visible rather than cutting off at the viewport edge.
+const EARN_ANIM_BUFFER = 24
+
 panZoom.setBoundsGetter(() => {
   const s = panZoom.scale.value
   const viewW = viewportEl.value?.clientWidth ?? window.innerWidth
@@ -29,15 +37,10 @@ panZoom.setBoundsGetter(() => {
   return {
     minX: scaledW >= viewW ? viewW - scaledW : (viewW - scaledW) / 2,
     maxX: scaledW >= viewW ? 0 : (viewW - scaledW) / 2,
-    minY: scaledH >= viewH ? viewH - scaledH : 0,
+    minY: scaledH >= viewH ? viewH - scaledH - EARN_ANIM_BUFFER * s : 0,
     maxY: 0,
   }
 })
-
-const COL_WIDTH = 200
-const ROW_HEIGHT = 120
-const CARD_WIDTH = 140
-const CARD_HEIGHT = 72
 
 function nodeX(skill: Skill): number {
   return (skill.tier - 1) * COL_WIDTH + (COL_WIDTH - CARD_WIDTH) / 2
@@ -136,7 +139,9 @@ watchEffect(() => {
   // Canvas has min-height:100% so its DOM height always fills the viewport.
   // When content is shorter, pin to top (ty=0); when taller, clamp to the hard edges.
   const clampedY =
-    scaledH >= viewH ? Math.max(viewH - scaledH, Math.min(0, panZoom.translateY.value)) : 0
+    scaledH >= viewH
+      ? Math.max(viewH - scaledH - EARN_ANIM_BUFFER * s, Math.min(0, panZoom.translateY.value))
+      : 0
 
   if (panZoom.translateX.value !== clampedX) panZoom.translateX.value = clampedX
   if (panZoom.translateY.value !== clampedY) panZoom.translateY.value = clampedY
