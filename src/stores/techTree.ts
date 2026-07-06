@@ -7,10 +7,10 @@ export const useTechTreeStore = defineStore('techTree', () => {
   const profileStore = useProfileStore()
 
   const acquiredIds = computed(() => {
-    const babyName = profileStore.activeBabyName
-    if (!babyName) return new Set<string>()
+    const babyId = profileStore.activeBabyId
+    if (!babyId) return new Set<string>()
     return new Set(
-      profileStore.acquired.filter((a) => a.babyName === babyName).map((a) => a.skillId),
+      profileStore.acquired.filter((a) => a.babyId === babyId).map((a) => a.skillId),
     )
   })
 
@@ -21,9 +21,9 @@ export const useTechTreeStore = defineStore('techTree', () => {
   }
 
   function acquiredDateOf(skill: Skill): string | undefined {
-    const babyName = profileStore.activeBabyName
-    if (!babyName) return undefined
-    return profileStore.acquired.find((a) => a.skillId === skill.id && a.babyName === babyName)
+    const babyId = profileStore.activeBabyId
+    if (!babyId) return undefined
+    return profileStore.acquired.find((a) => a.skillId === skill.id && a.babyId === babyId)
       ?.acquiredDate
   }
 
@@ -47,8 +47,8 @@ export const useTechTreeStore = defineStore('techTree', () => {
   )
 
   const newlyAvailableIds = computed(() => {
-    const babyName = profileStore.activeBabyName
-    const prev = new Set(babyName ? (profileStore.prevSessionAvailableIds[babyName] ?? []) : [])
+    const babyId = profileStore.activeBabyId
+    const prev = new Set(babyId ? (profileStore.prevSessionAvailableIds[babyId] ?? []) : [])
     return new Set(
       skills.filter((s) => progressOf(s) === 'available' && !prev.has(s.id)).map((s) => s.id),
     )

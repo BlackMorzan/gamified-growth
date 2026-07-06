@@ -6,10 +6,11 @@
 // they never copy any static skill fields, so the two can't drift.
 
 /**
- * Profile for one baby. `name` is the unique key — duplicate names are
- * rejected at the store level. `birthDate` drives all age calculations.
+ * Profile for one baby. `id` is the stable primary key (UUID); `name` is display-only.
+ * Duplicate names are rejected at the store level. `birthDate` drives all age calculations.
  */
 export interface BabyProfile {
+  id: string
   name: string
   /** ISO 8601 calendar date, `YYYY-MM-DD`. No time/zone — a birthday is a day. */
   birthDate: string
@@ -17,12 +18,12 @@ export interface BabyProfile {
 
 /**
  * A user-input ↔ skill link: one record per skill per baby.
- * `babyName` is a foreign key into `BabyProfile.name`.
+ * `babyId` is a foreign key into `BabyProfile.id`.
  * `skillId` is a foreign key into `Skill.id` in src/data/skills.ts.
  */
 export interface AcquiredSkill {
-  /** References `BabyProfile.name`. */
-  babyName: string
+  /** References `BabyProfile.id`. */
+  babyId: string
   /** References `Skill.id` in src/data/skills.ts. */
   skillId: string
   /** ISO 8601 date the parent recorded the acquisition (pre-filled to today). */
@@ -31,13 +32,13 @@ export interface AcquiredSkill {
 
 /**
  * Root shape of everything persisted to localStorage.
- * version 1 → single profile; version 2 → babies list + babyName on each acquired skill.
- * The storage layer migrates v1 to v2 on first load; v1 is never written back.
+ * version 3 → BabyProfile has `id`; AcquiredSkill uses `babyId` instead of `babyName`.
+ * Versions 1 and 2 are not migrated — data is wiped on mismatch (beta).
  */
 export interface PersistedUserData {
-  version: 2
+  version: 3
   babies: BabyProfile[]
   acquired: AcquiredSkill[]
-  /** Per-baby snapshot of available skill IDs at session end — drives the "new" badge diff. */
+  /** Per-baby snapshot of available skill IDs at session end — keyed by babyId. */
   prevSessionAvailableIds: Record<string, string[]>
 }

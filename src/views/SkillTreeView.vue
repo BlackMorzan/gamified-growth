@@ -9,7 +9,8 @@ const profileStore = useProfileStore()
 
 function syncActiveBaby() {
   const name = route.params.babyName as string
-  if (name) profileStore.setActiveBaby(name)
+  const baby = profileStore.babies.find((b) => b.name === name)
+  if (baby) profileStore.setActiveBaby(baby.id)
 }
 
 onMounted(syncActiveBaby)
@@ -20,7 +21,7 @@ watch(() => route.params.babyName, syncActiveBaby)
   <main class="tree-view">
     <header class="tree-header">
       <RouterLink to="/" class="back-link">← Home</RouterLink>
-      <h1 class="tree-title">{{ profileStore.activeBabyName }}</h1>
+      <h1 class="tree-title">{{ profileStore.activeBaby?.name }}</h1>
     </header>
     <SkillDomainTabs />
   </main>

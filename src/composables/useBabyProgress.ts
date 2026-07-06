@@ -28,12 +28,12 @@ const totalsByDomain = Object.fromEntries(
   DOMAIN_ORDER.map((domain) => [domain, skills.filter((s) => s.domain === domain).length]),
 ) as Record<SkillDomain, number>
 
-export function useBabyProgress(babyName: string): { progress: ComputedRef<DomainProgress[]> } {
+export function useBabyProgress(babyId: string): { progress: ComputedRef<DomainProgress[]> } {
   const profileStore = useProfileStore()
 
   const progress = computed<DomainProgress[]>(() => {
     const acquiredForBaby = new Set(
-      profileStore.acquired.filter((a) => a.babyName === babyName).map((a) => a.skillId),
+      profileStore.acquired.filter((a) => a.babyId === babyId).map((a) => a.skillId),
     )
 
     return DOMAIN_ORDER.map((domain) => {

@@ -9,8 +9,8 @@ import AddBabyForm from '@/components/AddBabyForm.vue'
 const { babies } = storeToRefs(useProfileStore())
 const showForm = ref(false)
 
-function progressFor(babyName: string) {
-  return useBabyProgress(babyName).progress.value
+function progressFor(babyId: string) {
+  return useBabyProgress(babyId).progress.value
 }
 </script>
 
@@ -30,9 +30,9 @@ function progressFor(babyName: string) {
     <section class="home__list">
       <BabyCard
         v-for="(baby, index) in babies"
-        :key="baby.name"
+        :key="baby.id"
         :baby="baby"
-        :progress="progressFor(baby.name)"
+        :progress="progressFor(baby.id)"
         :index="index"
       />
       <p v-if="babies.length === 0" class="home__empty">
