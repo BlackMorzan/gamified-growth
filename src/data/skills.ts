@@ -106,7 +106,7 @@ const PM002: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 1,
-  row: 2,
+  row: 3,
   requires: [],
   strengthens: [
     'PM006'
@@ -149,20 +149,20 @@ const PM003: Skill = {
 
 const PM004: Skill = {
   id: 'PM004',
-  name: 'Hands to Mouth Contact',
+  name: 'Midline Coordination',
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 1,
-  row: 5,
+  row: 2,
   requires: [],
   strengthens: [
     'PM008'
   ],
   milestone: false,
   evidence: [
-    'Brings hands together at midline and mouths them',
-    'Sucks on fingers or fist as self-soothing',
-    'Bats at a hanging toy with an open hand'
+    'Brings both hands together at the body\'s midline during play',
+    'Reaches across the midline with one arm to touch or bat an object on the opposite side',
+    'Brings hands to midline and mouths them as self-directed exploration'
   ],
   typical_age_months: {
     start: 2,
@@ -201,7 +201,7 @@ const PM006: Skill = {
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 2,
-  row: 3,
+  row: 4,
   requires: [
     'PM002',
     'PM003'
@@ -226,7 +226,7 @@ const PM007: Skill = {
   domain: 'physical_motor',
   category: 'gross_motor',
   tier: 2,
-  row: 2,
+  row: 3,
   requires: [
     'PM001'
   ],
@@ -281,7 +281,8 @@ const PM009: Skill = {
   tier: 4,
   row: 2,
   requires: [
-    'PM007'
+    'PM007',
+    'PM025'
   ],
   strengthens: [
     'PM013'
@@ -304,7 +305,7 @@ const PM010: Skill = {
   domain: 'physical_motor',
   category: 'object_manipulation',
   tier: 4,
-  row: 5,
+  row: 4,
   requires: [
     'PM008'
   ],
@@ -333,7 +334,7 @@ const PM011: Skill = {
   row: 1,
   requires: [
     'PM005',
-    'PM007',
+    'PM025',
     'PM006'
   ],
   strengthens: [
@@ -342,8 +343,7 @@ const PM011: Skill = {
   milestone: true,
   evidence: [
     'Propels forward on tummy using arms and legs',
-    'Commando-crawls to reach a toy placed just out of reach',
-    'Pivots 360° on tummy to face a new direction'
+    'Commando-crawls to reach a toy placed just out of reach'
   ],
   typical_age_months: {
     start: 6,
@@ -357,7 +357,7 @@ const PM012: Skill = {
   domain: 'physical_motor',
   category: 'object_manipulation',
   tier: 5,
-  row: 5,
+  row: 4,
   requires: [
     'PM010'
   ],
@@ -408,7 +408,7 @@ const PM014: Skill = {
   domain: 'physical_motor',
   category: 'fine_motor',
   tier: 5,
-  row: 4,
+  row: 5,
   requires: [
     'PM008'
   ],
@@ -460,10 +460,11 @@ const PM016: Skill = {
   domain: 'physical_motor',
   category: 'self_care',
   tier: 6,
-  row: 4,
+  row: 3,
   requires: [
     'PM014',
-    'PM012'
+    'PM012',
+    'PM009'
   ],
   strengthens: [
     'PM020'
@@ -511,7 +512,7 @@ const PM018: Skill = {
   domain: 'physical_motor',
   category: 'object_manipulation',
   tier: 6,
-  row: 3,
+  row: 4,
   requires: [
     'PM014',
     'PM012'
@@ -535,7 +536,7 @@ const PM019: Skill = {
   domain: 'physical_motor',
   category: 'self_care',
   tier: 8,
-  row: 4,
+  row: 3,
   requires: [
     'PM016'
   ],
@@ -657,7 +658,7 @@ const PM024: Skill = {
   domain: 'physical_motor',
   category: 'self_care',
   tier: 9,
-  row: 4,
+  row: 3,
   requires: [
     'PM019'
   ],
@@ -671,6 +672,76 @@ const PM024: Skill = {
   typical_age_months: {
     start: 18,
     end: 24
+  }
+}
+
+const PM025: Skill = {
+  id: 'PM025',
+  name: 'Prone Pivoting',
+  domain: 'physical_motor',
+  category: 'gross_motor',
+  tier: 2,
+  row: 2,
+  requires: [
+    'PM001',
+    'PM004'
+  ],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Pivots 360° on tummy to face a new direction',
+    'Rotates in a circle while propped on belly to reach a toy off to the side',
+    'Changes prone-lying orientation without translating forward'
+  ],
+  typical_age_months: {
+    start: 5,
+    end: 8
+  }
+}
+
+const PM026: Skill = {
+  id: 'PM026',
+  name: 'Differentiates Hand Roles',
+  domain: 'physical_motor',
+  category: 'object_manipulation',
+  tier: 8,
+  row: 4,
+  requires: [
+    'PM018'
+  ],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Uses one hand to stabilize an object while the other manipulates it (e.g. holding a jar while twisting the lid)',
+    'Holds paper steady with one hand while scribbling with the other',
+    'Assigns different roles to each hand during a two-handed task without prompting'
+  ],
+  typical_age_months: {
+    start: 16,
+    end: 20
+  }
+}
+
+const PM027: Skill = {
+  id: 'PM027',
+  name: 'Helps with Dressing',
+  domain: 'physical_motor',
+  category: 'self_care',
+  tier: 9,
+  row: 4,
+  requires: [
+    'PM026'
+  ],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Extends arm or leg into a sleeve or pant leg when prompted',
+    'Attempts to pull off socks or an open jacket',
+    'Cooperates rather than resists during dressing/undressing'
+  ],
+  typical_age_months: {
+    start: 12,
+    end: 18
   }
 }
 
@@ -1190,6 +1261,28 @@ const LC001: Skill = {
   }
 }
 
+const LC002: Skill = {
+  id: 'LC002',
+  name: 'Simple Identification',
+  domain: 'language_communication',
+  category: 'receptive_language',
+  tier: 6,
+  row: 1,
+  requires: [
+    'LC015'
+  ],
+  strengthens: [],
+  milestone: false,
+  evidence: [
+    'Points to nose, eyes, ears, or tummy when asked "where\'s your—?"',
+    'Points to a named object or character in a picture book'
+  ],
+  typical_age_months: {
+    start: 18,
+    end: 24
+  }
+}
+
 const LC003: Skill = {
   id: 'LC003',
   name: 'Cry Differentiation',
@@ -1468,7 +1561,7 @@ const LC014: Skill = {
   requires: [
     'LC009',
     'LC011',
-    'LC008'
+    'LC010'
   ],
   strengthens: [
     'LC016',
@@ -1543,7 +1636,7 @@ const LC017: Skill = {
   domain: 'language_communication',
   category: 'expressive_language',
   tier: 5,
-  row: 3,
+  row: 5,
   requires: [
     'LC014'
   ],
@@ -1568,7 +1661,7 @@ const LC018: Skill = {
   domain: 'language_communication',
   category: 'expressive_language',
   tier: 6,
-  row: 3,
+  row: 5,
   requires: [
     'LC017'
   ],
@@ -1705,7 +1798,7 @@ const SE003: Skill = {
 
 const SE004: Skill = {
   id: 'SE004',
-  name: 'Simple Empotions',
+  name: 'Simple Emotions',
   domain: 'social_emotional',
   category: 'emotional_expression',
   tier: 1,
@@ -2127,6 +2220,27 @@ const SE020: Skill = {
   }
 }
 
+const SE021: Skill = {
+  id: 'SE021',
+  name: 'Self-Soothes',
+  domain: 'social_emotional',
+  category: 'emotional_regulation',
+  tier: 1,
+  row: 3,
+  requires: [],
+  strengthens: [],
+  milestone: true,
+  evidence: [
+    'Sucks on fingers or fist to self-soothe',
+    'Calms independently within a few minutes without caregiver intervention',
+    'Settles when placed in a familiar/comforting position'
+  ],
+  typical_age_months: {
+    start: 2,
+    end: 5
+  }
+}
+
 // ===========================================================================
 // Exports
 // ===========================================================================
@@ -2138,6 +2252,7 @@ export const physicalMotorSkills: Skill[] = [
   PM013, PM014, PM015, PM016,
   PM017, PM018, PM019, PM020,
   PM021, PM022, PM023, PM024,
+  PM025, PM026, PM027,
 ]
 
 export const cognitiveSkills: Skill[] = [
@@ -2149,7 +2264,7 @@ export const cognitiveSkills: Skill[] = [
 ]
 
 export const languageSkills: Skill[] = [
-  LC001, LC003, LC004,
+  LC001, LC002, LC003, LC004,
   LC005, LC006, LC007, LC008,
   LC009, LC010, LC011, LC012,
   LC013, LC014, LC015, LC016,
@@ -2162,6 +2277,7 @@ export const socialEmotionalSkills: Skill[] = [
   SE009, SE010, SE011, SE012,
   SE013, SE014, SE015, SE016,
   SE017, SE018, SE019, SE020,
+  SE021,
 ]
 
 /** Full skill list — extend here as new domains are added */
