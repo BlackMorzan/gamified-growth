@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { BabyProfile, AcquiredSkill, PersistedUserData } from '@/types/user'
+import { skills as allSkills } from '@/data/skills'
 
 const STORAGE_KEY = 'ggg-data'
 
@@ -110,6 +111,67 @@ export const useProfileStore = defineStore('profile', () => {
     )
   }
 
+  /** Import result type. */
+  type ImportResult = { ok: true } | { ok: false; error: string }
+
+  /**
+   * Validates and imports an export envelope for the baby identified by `name`.
+   * Full overwrite — no merge. Unknown skillIds are skipped with console.warn.
+   * Returns `{ ok: true }` on success or `{ ok: false, error }` on structural/name error.
+   */
+  function importBaby(name: string, raw: unknown): ImportResult {
+    // Structural validation
+    if (typeof raw !== 'object' || raw === null) return { ok: false, error: 'Invalid JSON structure.' }
+    const d = raw as Record<string, unknown>
+    if (d.version !== 1) return { ok: false, error: `Unsupported export version: ${d.version}.` }
+    if (typeof d.baby !== 'object' || d.baby === null) return { ok: false, error: 'Missing baby field.' }
+    const b = d.baby as Record<string, unknown>
+    if (typeof b.name !== 'string' || !b.name) return { ok: false, error: 'Missing baby name.' }
+    if (typeof b.birthDate !== 'string' || !b.birthDate) return { ok: false, error: 'Missing baby birthDate.' }
+    if (!Array.isArray(d.skills)) return { ok: false, error: 'Missing skills array.' }
+
+    // Name match (case-insensitive trim)
+    if (b.name.trim().toLowerCase() !== name.trim().toLowerCase()) {
+      return { ok: false, error: `Name mismatch: file is for "${b.name}", not "${name}".` }
+    }
+
+    // Find baby in store
+    const baby = babies.value.find(
+      (x) => x.name.trim().toLowerCase() === name.trim().toLowerCase(),
+    )
+    if (!baby) return { ok: false, error: `Baby "${name}" not found.` }
+
+    const validSkillIds = new Set(allSkills.map((s) => s.id))
+
+    const newAcquired: AcquiredSkill[] = []
+    for (const entry of d.skills as unknown[]) {
+      if (typeof entry !== 'object' || entry === null) {
+        return { ok: false, error: 'Malformed skills entry.' }
+      }
+      const e = entry as Record<string, unknown>
+      if (typeof e.skillId !== 'string' || !e.skillId) {
+        return { ok: false, error: 'Malformed skills entry: missing skillId.' }
+      }
+      if (typeof e.acquiredDate !== 'string' || !e.acquiredDate) {
+        return { ok: false, error: 'Malformed skills entry: missing acquiredDate.' }
+      }
+      if (!validSkillIds.has(e.skillId)) {
+        console.warn(`[import] Unknown skillId "${e.skillId}" — skipped.`)
+        continue
+      }
+      newAcquired.push({ babyId: baby.id, skillId: e.skillId, acquiredDate: e.acquiredDate })
+    }
+
+    // Update birthDate and overwrite acquired skills for this baby
+    baby.birthDate = b.birthDate as string
+    acquired.value = [
+      ...acquired.value.filter((a) => a.babyId !== baby.id),
+      ...newAcquired,
+    ]
+    _save()
+    return { ok: true }
+  }
+
   const ageInMonths = computed((): number => {
     const baby = activeBaby.value
     if (!baby) return 0
@@ -134,5 +196,6 @@ export const useProfileStore = defineStore('profile', () => {
     setAcquiredDate,
     saveSessionSnapshot,
     exportBaby,
+    importBaby,
   }
 })

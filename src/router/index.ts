@@ -9,6 +9,7 @@ const router = createRouter({
     { path: '/setup', component: () => import('../views/ProfileSetupView.vue') },
     { path: '/tree/:babyName', name: 'skill-tree', component: () => import('../views/SkillTreeView.vue') },
     { path: '/tree/:babyName/export', name: 'export', component: () => import('../views/ExportView.vue') },
+    { path: '/tree/:babyName/import', name: 'import', component: () => import('../views/ImportView.vue') },
   ],
 })
 

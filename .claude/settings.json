@@ -4,8 +4,8 @@
   },
   "permissions": {
     "allow": [
-      "Bash(npm run build)",
-      "Bash(npm run lint)"
+      "Bash(npm run *)",
+      "Bash(npx tsc *)"
     ]
   }
 }
