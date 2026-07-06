@@ -18,13 +18,13 @@ defineEmits<{
 
 <style scoped>
 .controls {
-  position: absolute;
-  bottom: var(--space-4);
-  right: var(--space-4);
+  position: fixed;
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom, 0px));
+  right: calc(var(--space-4) + env(safe-area-inset-right, 0px));
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  z-index: 10;
+  z-index: 20;
 }
 
 .ctrl-btn {
