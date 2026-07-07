@@ -115,11 +115,11 @@ export const useProfileStore = defineStore('profile', () => {
   type ImportResult = { ok: true } | { ok: false; error: string }
 
   /**
-   * Validates and imports an export envelope for the baby identified by `name`.
-   * Full overwrite — no merge. Unknown skillIds are skipped with console.warn.
-   * Returns `{ ok: true }` on success or `{ ok: false, error }` on structural/name error.
+   * Validates and imports an export envelope. Baby is looked up by name from the file;
+   * created automatically if not found. Full overwrite — no merge.
+   * Unknown skillIds are skipped with console.warn. Returns `{ ok: true }` on success.
    */
-  function importBaby(name: string, raw: unknown): ImportResult {
+  function importBaby(raw: unknown): ImportResult {
     // Structural validation
     if (typeof raw !== 'object' || raw === null) return { ok: false, error: 'Invalid JSON structure.' }
     const d = raw as Record<string, unknown>
@@ -130,16 +130,15 @@ export const useProfileStore = defineStore('profile', () => {
     if (typeof b.birthDate !== 'string' || !b.birthDate) return { ok: false, error: 'Missing baby birthDate.' }
     if (!Array.isArray(d.skills)) return { ok: false, error: 'Missing skills array.' }
 
-    // Name match (case-insensitive trim)
-    if (b.name.trim().toLowerCase() !== name.trim().toLowerCase()) {
-      return { ok: false, error: `Name mismatch: file is for "${b.name}", not "${name}".` }
-    }
-
-    // Find baby in store
+    // Find baby in store by name from the file
     const baby = babies.value.find(
-      (x) => x.name.trim().toLowerCase() === name.trim().toLowerCase(),
+      (x) => x.name.trim().toLowerCase() === (b.name as string).trim().toLowerCase(),
     )
-    if (!baby) return { ok: false, error: `Baby "${name}" not found.` }
+    const resolvedBaby = baby ?? (() => {
+      const created: BabyProfile = { id: crypto.randomUUID(), name: b.name as string, birthDate: b.birthDate as string }
+      babies.value.push(created)
+      return created
+    })()
 
     const validSkillIds = new Set(allSkills.map((s) => s.id))
 
@@ -159,13 +158,13 @@ export const useProfileStore = defineStore('profile', () => {
         console.warn(`[import] Unknown skillId "${e.skillId}" — skipped.`)
         continue
       }
-      newAcquired.push({ babyId: baby.id, skillId: e.skillId, acquiredDate: e.acquiredDate })
+      newAcquired.push({ babyId: resolvedBaby.id, skillId: e.skillId, acquiredDate: e.acquiredDate })
     }
 
     // Update birthDate and overwrite acquired skills for this baby
-    baby.birthDate = b.birthDate as string
+    resolvedBaby.birthDate = b.birthDate as string
     acquired.value = [
-      ...acquired.value.filter((a) => a.babyId !== baby.id),
+      ...acquired.value.filter((a) => a.babyId !== resolvedBaby.id),
       ...newAcquired,
     ]
     _save()

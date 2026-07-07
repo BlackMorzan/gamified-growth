@@ -126,6 +126,38 @@ npm run lint:check  # check only (CI)
 
 ---
 
+## Export & Import (backup utility)
+
+These are hidden debug routes — not linked from the UI. Useful for moving data between devices before the full backup/restore flow (GAGO-39) ships.
+
+### Export
+
+Navigate to `/tree/<babyName>/export`. The browser immediately downloads `baby-<babyName>-skills.json`.
+
+Format:
+
+```json
+{
+  "version": 1,
+  "baby": { "name": "Ada", "birthDate": "2024-03-15" },
+  "skills": [
+    { "skillId": "PM001", "acquiredDate": "2024-06-01" }
+  ]
+}
+```
+
+### Import
+
+Navigate to `/tree/import`. Pick the JSON file exported above.
+
+- The baby is identified by `baby.name` inside the file — no URL param needed.
+- If no profile exists for that baby name, one is created automatically from the file's `name` + `birthDate`.
+- **Full overwrite** — the baby's existing acquired skills are replaced entirely.
+- Unrecognised skill IDs are skipped with a `console.warn`; structural errors abort the import.
+- The baby's `birthDate` is updated from the file.
+
+---
+
 ## Recommended IDE Setup
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).

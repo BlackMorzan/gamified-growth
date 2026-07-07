@@ -4,8 +4,10 @@
   },
   "permissions": {
     "allow": [
-      "Bash(npm run *)",
-      "Bash(npx tsc *)"
+      "Bash(cd C:\\Users\\morza\\Documents\\Repos\\gamified-growth; npm run lint)",
+      "Bash(cd C:\\Users\\morza\\Documents\\Repos\\gamified-growth; npx tsc --noEmit)",
+      "Bash(cd C:\\Users\\morza\\Documents\\Repos\\gamified-growth; npm run lint; npx tsc --noEmit)",
+      "Bash(npm run build)"
     ]
   }
 }

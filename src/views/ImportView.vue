@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useProfileStore } from '@/stores/profile'
 
-const route = useRoute()
+const router = useRouter()
 const profileStore = useProfileStore()
 
-const status = ref<'idle' | 'success' | 'error'>('idle')
+const status = ref<'idle' | 'error'>('idle')
 const errorMsg = ref('')
 
 function onFileChange(event: Event) {
@@ -25,10 +25,9 @@ function onFileChange(event: Event) {
       return
     }
 
-    const name = route.params.babyName as string
-    const result = profileStore.importBaby(name, parsed)
+    const result = profileStore.importBaby(parsed)
     if (result.ok) {
-      status.value = 'success'
+      router.push('/')
     } else {
       status.value = 'error'
       errorMsg.value = result.error
@@ -41,7 +40,7 @@ function onFileChange(event: Event) {
 <template>
   <main class="import-view">
     <div class="import-view__card">
-      <p class="import-view__label">Import skill data for <strong>{{ route.params.babyName }}</strong></p>
+      <p class="import-view__label">Import skill data</p>
       <label class="import-view__btn" for="import-file">Choose file</label>
       <input
         id="import-file"
@@ -50,9 +49,6 @@ function onFileChange(event: Event) {
         accept="application/json,.json"
         @change="onFileChange"
       />
-      <p v-if="status === 'success'" class="import-view__msg import-view__msg--success">
-        Import successful.
-      </p>
       <p v-if="status === 'error'" class="import-view__msg import-view__msg--error">
         {{ errorMsg }}
       </p>
@@ -107,10 +103,6 @@ function onFileChange(event: Event) {
 .import-view__msg {
   font-size: 14px;
   margin: 0;
-}
-
-.import-view__msg--success {
-  color: var(--color-success-text);
 }
 
 .import-view__msg--error {
