@@ -86,7 +86,7 @@ function lockBack() {
 <template>
   <BottomSheet
     :open="!!skill"
-    :aria-label="skill?.name ?? ''"
+    :ariaLabel="skill?.name ?? ''"
     :panel-class="{ 'sheet-panel--milestone': !!skill?.milestone }"
     @close="emit('close')"
   >

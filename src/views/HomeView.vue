@@ -80,7 +80,7 @@ watch(() => babies.value.length, (len) => {
     <!-- Edit profile sheet -->
     <BottomSheet
       :open="!!editingBaby"
-      :aria-label="`Edit ${editingBaby?.name ?? ''}`"
+      :ariaLabel="`Edit ${editingBaby?.name ?? ''}`"
       @close="closeEdit"
     >
       <template #header>
@@ -97,7 +97,7 @@ watch(() => babies.value.length, (len) => {
     <!-- Delete confirm sheet -->
     <BottomSheet
       :open="!!deletingBaby"
-      :aria-label="`Delete ${deletingBaby?.name ?? ''}'s profile`"
+      :ariaLabel="`Delete ${deletingBaby?.name ?? ''}'s profile`"
       @close="closeDelete"
     >
       <template #header>
