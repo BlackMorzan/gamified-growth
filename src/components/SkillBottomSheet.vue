@@ -4,6 +4,7 @@ import type { Skill } from '@/data/skills'
 import { skillById } from '@/data/skills'
 import { useTechTreeStore } from '@/stores/techTree'
 import { useProfileStore } from '@/stores/profile'
+import BottomSheet from './BottomSheet.vue'
 
 const props = defineProps<{ skill: Skill | null }>()
 const emit = defineEmits<{ close: [] }>()
@@ -83,113 +84,83 @@ function lockBack() {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div
-      v-if="skill"
-      class="sheet-backdrop"
-      role="dialog"
-      :aria-label="skill.name"
-      aria-modal="true"
-      @click.self="emit('close')"
-    >
-      <div class="sheet-panel" :class="{ 'sheet-panel--milestone': skill.milestone }">
-        <div class="sheet-header">
-          <div class="sheet-title-group">
-            <span class="sheet-icon" :class="iconClass" aria-hidden="true">{{ icon }}</span>
-            <h2 class="sheet-title">{{ skill.name }}</h2>
-          </div>
-          <button class="sheet-close" aria-label="Close" @click="emit('close')">✕</button>
-        </div>
+  <BottomSheet
+    :open="!!skill"
+    :aria-label="skill?.name ?? ''"
+    :panel-class="{ 'sheet-panel--milestone': !!skill?.milestone }"
+    @close="emit('close')"
+  >
+    <template #header>
+      <div class="sheet-title-group">
+        <span class="sheet-icon" :class="iconClass" aria-hidden="true">{{ icon }}</span>
+        <h2 class="sheet-title">{{ skill?.name }}</h2>
+      </div>
+    </template>
 
-        <div class="sheet-meta">
-          <span class="sheet-age">{{ skill.typical_age_months.start }}–{{ skill.typical_age_months.end }}m typical</span>
-          <span v-if="skill.milestone" class="sheet-milestone-chip">Milestone</span>
-        </div>
+    <div class="sheet-meta">
+      <span class="sheet-age">{{ skill?.typical_age_months.start }}–{{ skill?.typical_age_months.end }}m typical</span>
+      <span v-if="skill?.milestone" class="sheet-milestone-chip">Milestone</span>
+    </div>
 
-        <div v-if="progress === 'acquired'" class="sheet-acquired">
-          <template v-if="!editingDate">
-            <span class="sheet-acquired-date">Acquired {{ acquiredDate }}</span>
-            <button class="sheet-edit-btn" @click="startEditDate">Edit date</button>
-            <button class="sheet-lock-back-btn" title="Undo — mark as not acquired" @click="lockBack">🔒</button>
-          </template>
-          <template v-else>
-            <label class="sheet-acquire-label" for="edit-date">Edit acquisition date</label>
-            <div class="sheet-acquire-row">
-              <input
-                id="edit-date"
-                v-model="editDateInput"
-                type="date"
-                class="sheet-date-input"
-                :max="today"
-                aria-label="Acquisition date"
-              />
-              <button class="sheet-confirm-btn" @click="saveDate">Save</button>
-              <button class="sheet-cancel-btn" @click="editingDate = false">Cancel</button>
-            </div>
-          </template>
+    <div v-if="progress === 'acquired'" class="sheet-acquired">
+      <template v-if="!editingDate">
+        <span class="sheet-acquired-date">Acquired {{ acquiredDate }}</span>
+        <button class="sheet-edit-btn" @click="startEditDate">Edit date</button>
+        <button class="sheet-lock-back-btn" title="Undo — mark as not acquired" @click="lockBack">🔒</button>
+      </template>
+      <template v-else>
+        <label class="sheet-acquire-label" for="edit-date">Edit acquisition date</label>
+        <div class="sheet-acquire-row">
+          <input
+            id="edit-date"
+            v-model="editDateInput"
+            type="date"
+            class="sheet-date-input"
+            :max="today"
+            aria-label="Acquisition date"
+          />
+          <button class="sheet-confirm-btn" @click="saveDate">Save</button>
+          <button class="sheet-cancel-btn" @click="editingDate = false">Cancel</button>
         </div>
+      </template>
+    </div>
 
-        <div v-if="progress === 'locked' && unmetPrereqs.length" class="sheet-lock-reason">
-          <span class="sheet-lock-label">Requires:</span>
-          <ul class="sheet-prereq-list">
-            <li v-for="prereq in unmetPrereqs" :key="prereq.id">{{ prereq.name }}</li>
-          </ul>
-        </div>
+    <div v-if="progress === 'locked' && unmetPrereqs.length" class="sheet-lock-reason">
+      <span class="sheet-lock-label">Requires:</span>
+      <ul class="sheet-prereq-list">
+        <li v-for="prereq in unmetPrereqs" :key="prereq.id">{{ prereq.name }}</li>
+      </ul>
+    </div>
 
-        <section class="sheet-evidence">
-          <h3 class="sheet-section-title">Evidence</h3>
-          <ul class="sheet-evidence-list">
-            <li v-for="(item, i) in skill.evidence" :key="i">{{ item }}</li>
-          </ul>
-        </section>
+    <section class="sheet-evidence">
+      <h3 class="sheet-section-title">Evidence</h3>
+      <ul class="sheet-evidence-list">
+        <li v-for="(item, i) in skill?.evidence" :key="i">{{ item }}</li>
+      </ul>
+    </section>
 
-        <div v-if="progress === 'available'" class="sheet-acquire">
-          <label class="sheet-acquire-label" for="acquire-date">Date acquired</label>
-          <div class="sheet-acquire-row">
-            <input
-              id="acquire-date"
-              v-model="dateInput"
-              type="date"
-              class="sheet-date-input"
-              :max="today"
-              aria-label="Date acquired"
-            />
-            <button class="sheet-confirm-btn" @click="acquire">Mark Acquired</button>
-          </div>
-        </div>
+    <div v-if="progress === 'available'" class="sheet-acquire">
+      <label class="sheet-acquire-label" for="acquire-date">Date acquired</label>
+      <div class="sheet-acquire-row">
+        <input
+          id="acquire-date"
+          v-model="dateInput"
+          type="date"
+          class="sheet-date-input"
+          :max="today"
+          aria-label="Date acquired"
+        />
+        <button class="sheet-confirm-btn" @click="acquire">Mark Acquired</button>
       </div>
     </div>
-  </Teleport>
+  </BottomSheet>
 </template>
 
 <style scoped>
-.sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-}
-
-.sheet-panel {
-  background: var(--color-surface);
-  border-top: 2px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  padding: var(--space-5) var(--space-6) var(--space-8);
-  max-height: 80vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.sheet-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-3);
+/* TODO: review by UI/UX designer */
+:deep(.sheet-panel--milestone) {
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-skill-milestone) 12%);
+  border-top-color: var(--color-accent-gold);
 }
 
 .sheet-title-group {
@@ -203,12 +174,6 @@ function lockBack() {
 .sheet-icon {
   font-size: 18px;
   flex-shrink: 0;
-}
-
-/* TODO: review by UI/UX designer */
-.sheet-panel--milestone {
-  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-skill-milestone) 12%);
-  border-top-color: var(--color-accent-gold);
 }
 
 .sheet-icon--milestone { color: var(--color-accent-gold); }
@@ -225,28 +190,6 @@ function lockBack() {
   flex: 1;
   min-width: 0;
   overflow-wrap: break-word;
-}
-
-.sheet-close {
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  font-size: 16px;
-  cursor: pointer;
-  padding: var(--space-1);
-  line-height: 1;
-  min-width: 44px;
-  min-height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.sheet-close:hover { color: var(--color-text); }
-.sheet-close:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 .sheet-meta {

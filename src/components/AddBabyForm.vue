@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { BabyProfile } from '@/types/user'
 import { useProfileStore } from '@/stores/profile'
+
+const props = defineProps<{
+  editBaby?: BabyProfile
+}>()
 
 const emit = defineEmits<{
   saved: []
@@ -9,8 +14,8 @@ const emit = defineEmits<{
 
 const profileStore = useProfileStore()
 
-const name = ref('')
-const birthDate = ref('')
+const name = ref(props.editBaby?.name ?? '')
+const birthDate = ref(props.editBaby?.birthDate ?? '')
 const nameError = ref('')
 const birthDateError = ref('')
 
@@ -24,7 +29,12 @@ function validate(): boolean {
     nameError.value = 'Baby name is required'
   } else if (name.value.trim().length > 40) {
     nameError.value = 'Name must be 40 characters or fewer'
-  } else if (profileStore.babies.some((b) => b.name === name.value.trim())) {
+  } else if (
+    profileStore.babies.some((b) => {
+      if (props.editBaby && b.id === props.editBaby.id) return false
+      return b.name.trim().toLowerCase() === name.value.trim().toLowerCase()
+    })
+  ) {
     nameError.value = 'A baby with this name already exists'
   }
 
@@ -39,7 +49,11 @@ function validate(): boolean {
 
 function save() {
   if (!validate()) return
-  profileStore.addBaby(name.value.trim(), birthDate.value)
+  if (props.editBaby) {
+    profileStore.updateBaby(props.editBaby.id, name.value.trim(), birthDate.value)
+  } else {
+    profileStore.addBaby(name.value.trim(), birthDate.value)
+  }
   emit('saved')
 }
 </script>
@@ -81,7 +95,9 @@ function save() {
     </div>
 
     <div class="add-baby-form__actions">
-      <button class="btn btn--primary" type="button" @click="save">Save</button>
+      <button class="btn btn--primary" type="button" @click="save">
+        {{ editBaby ? 'Save Changes' : 'Save' }}
+      </button>
       <button class="btn btn--ghost" type="button" @click="emit('cancel')">Cancel</button>
     </div>
   </div>

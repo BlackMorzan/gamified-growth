@@ -90,6 +90,28 @@ export const useProfileStore = defineStore('profile', () => {
     _save()
   }
 
+  /** Returns false if another baby with that name already exists (case/whitespace-insensitive, excludes self). */
+  function updateBaby(id: string, name: string, birthDate: string): boolean {
+    const baby = babies.value.find((b) => b.id === id)
+    if (!baby) return false
+    const trimmed = name.trim()
+    if (babies.value.some((b) => b.id !== id && b.name.trim().toLowerCase() === trimmed.toLowerCase())) return false
+    baby.name = trimmed
+    baby.birthDate = birthDate
+    _save()
+    return true
+  }
+
+  function deleteBaby(id: string): void {
+    babies.value = babies.value.filter((b) => b.id !== id)
+    acquired.value = acquired.value.filter((a) => a.babyId !== id)
+    const snap = { ...prevSessionAvailableIds.value }
+    delete snap[id]
+    prevSessionAvailableIds.value = snap
+    if (activeBabyId.value === id) activeBabyId.value = null
+    _save()
+  }
+
   function saveSessionSnapshot(availableIds: string[]): void {
     const babyId = activeBabyId.value
     if (!babyId) return
@@ -193,6 +215,8 @@ export const useProfileStore = defineStore('profile', () => {
     acquire,
     unacquire,
     setAcquiredDate,
+    updateBaby,
+    deleteBaby,
     saveSessionSnapshot,
     exportBaby,
     importBaby,
