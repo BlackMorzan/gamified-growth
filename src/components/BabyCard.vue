@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import type { BabyProfile } from '@/types/user'
 import type { DomainProgress } from '@/composables/useBabyProgress'
 import { formatAge } from '@/utils/age'
+
+const REVEAL_WIDTH = 64
+const RUBBER = 0.3
 
 const props = defineProps<{
   baby: BabyProfile
@@ -19,80 +22,168 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const mounted = ref(false)
+const dragX = ref(0)       // CSS translateX: 0=closed, -REVEAL_WIDTH=open
 const isRevealed = ref(false)
+const isSnapping = ref(false)
+
 const cardEl = ref<HTMLElement | null>(null)
+const innerEl = ref<HTMLElement | null>(null)
+const kebabRef = ref<HTMLButtonElement | null>(null)
+const editChipRef = ref<HTMLButtonElement | null>(null)
 
 onMounted(() => { requestAnimationFrame(() => { mounted.value = true }) })
 
+// When sheet closes, reset card
 watch(() => props.sheetIsOpen, (open) => {
-  if (!open) isRevealed.value = false
+  if (!open) _close()
 })
 
-function handleDocumentClick(e: MouseEvent) {
+// Outside-tap listener — added/removed when isRevealed changes
+function _handleDocumentClick(e: MouseEvent) {
   if (!cardEl.value?.contains(e.target as Node)) {
-    isRevealed.value = false
-    document.removeEventListener('click', handleDocumentClick)
+    _close()
   }
 }
 
-function toggleReveal() {
-  isRevealed.value = !isRevealed.value
-  if (isRevealed.value) {
-    // nextTick not needed — @click.stop prevents this click reaching document
-    document.addEventListener('click', handleDocumentClick)
+watch(isRevealed, (revealed) => {
+  if (revealed) {
+    document.addEventListener('click', _handleDocumentClick)
   } else {
-    document.removeEventListener('click', handleDocumentClick)
+    document.removeEventListener('click', _handleDocumentClick)
   }
-}
+})
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleDocumentClick)
+  document.removeEventListener('click', _handleDocumentClick)
 })
 
-// Swipe-to-reveal (horizontal swipe, direction-locked)
+async function _open() {
+  dragX.value = -REVEAL_WIDTH
+  isRevealed.value = true
+  isSnapping.value = true
+  setTimeout(() => { isSnapping.value = false }, 280)
+  await nextTick()
+  editChipRef.value?.focus()
+}
+
+function _close() {
+  dragX.value = 0
+  isRevealed.value = false
+  isSnapping.value = true
+  setTimeout(() => { isSnapping.value = false }, 280)
+}
+
+function handleKebabClick() {
+  if (isRevealed.value) {
+    _close()
+    nextTick(() => kebabRef.value?.focus())
+  } else {
+    _open()
+  }
+}
+
+function handleEscape(e: KeyboardEvent) {
+  if (isRevealed.value) {
+    e.stopPropagation()
+    _close()
+    nextTick(() => kebabRef.value?.focus())
+  }
+}
+
+function handleEditClick() {
+  _close()
+  emit('edit')
+}
+
+function handleDeleteClick() {
+  _close()
+  emit('delete')
+}
+
+// Card body click — close if revealed (don't navigate); navigate if closed
+function handleInnerClick() {
+  if (isRevealed.value) {
+    _close()
+    return
+  }
+  router.push({ name: 'skill-tree', params: { babyName: props.baby.name } })
+}
+
+function handleInnerKeyEnter() {
+  if (!isRevealed.value) {
+    router.push({ name: 'skill-tree', params: { babyName: props.baby.name } })
+  }
+}
+
+function goToDomain(domain: string) {
+  router.push({ name: 'skill-tree', params: { babyName: props.baby.name }, query: { domain } })
+}
+
+// ─── Touch / swipe ────────────────────────────────────────────────────────────
+
 let touchStartX = 0
 let touchStartY = 0
+let touchStartDragX = 0
 let touchLocked: 'h' | 'v' | null = null
 
+function _clampedDrag(startX: number, delta: number): number {
+  // delta > 0 = moved left (revealing)
+  const natural = startX - delta
+  if (natural > 0) return natural * RUBBER                                          // rubber right
+  if (natural < -REVEAL_WIDTH) return -REVEAL_WIDTH + (natural + REVEAL_WIDTH) * RUBBER // rubber left
+  return natural
+}
+
 function onTouchStart(e: TouchEvent) {
-  touchStartX = e.touches[0].clientX
-  touchStartY = e.touches[0].clientY
+  isSnapping.value = false
+  touchStartX = e.touches[0]!.clientX
+  touchStartY = e.touches[0]!.clientY
+  touchStartDragX = dragX.value
   touchLocked = null
 }
 
 function onTouchMove(e: TouchEvent) {
-  const dx = Math.abs(e.touches[0].clientX - touchStartX)
-  const dy = Math.abs(e.touches[0].clientY - touchStartY)
-  if (touchLocked === null && (dx > 8 || dy > 8)) {
-    touchLocked = dx > dy ? 'h' : 'v'
+  const dx = e.touches[0]!.clientX - touchStartX
+  const dy = e.touches[0]!.clientY - touchStartY
+
+  if (touchLocked === null && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+    touchLocked = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v'
   }
-  if (touchLocked === 'h') e.preventDefault()
+
+  if (touchLocked === 'h') {
+    e.preventDefault()
+    dragX.value = _clampedDrag(touchStartDragX, touchStartX - e.touches[0]!.clientX)
+  }
 }
 
 function onTouchEnd(e: TouchEvent) {
-  const dx = e.changedTouches[0].clientX - touchStartX
-  if (touchLocked === 'h' && Math.abs(dx) > 40) {
-    if (!isRevealed.value) {
-      isRevealed.value = true
-      document.addEventListener('click', handleDocumentClick)
-    } else {
-      isRevealed.value = false
-      document.removeEventListener('click', handleDocumentClick)
-    }
+  if (touchLocked !== 'h') return
+
+  const delta = touchStartX - e.changedTouches[0]!.clientX
+  const final = _clampedDrag(touchStartDragX, delta)
+  const snapped = final <= -REVEAL_WIDTH * 0.5 ? -REVEAL_WIDTH : 0
+
+  dragX.value = snapped
+  isSnapping.value = true
+  setTimeout(() => { isSnapping.value = false }, 280)
+
+  const wasRevealed = isRevealed.value
+  isRevealed.value = snapped < 0
+
+  if (!wasRevealed && isRevealed.value) {
+    nextTick(() => editChipRef.value?.focus())
+  } else if (wasRevealed && !isRevealed.value) {
+    nextTick(() => kebabRef.value?.focus())
   }
 }
 
-// Attach touchmove as non-passive so we can preventDefault for direction lock
+// Non-passive touchmove for direction lock (preventDefault)
 onMounted(() => {
-  cardEl.value?.addEventListener('touchmove', onTouchMove, { passive: false })
+  innerEl.value?.addEventListener('touchmove', onTouchMove, { passive: false })
 })
 onUnmounted(() => {
-  cardEl.value?.removeEventListener('touchmove', onTouchMove)
+  innerEl.value?.removeEventListener('touchmove', onTouchMove)
 })
-
-function goToTree(domain?: string) {
-  router.push({ name: 'skill-tree', params: { babyName: props.baby.name }, query: domain ? { domain } : {} })
-}
 
 const DOMAIN_COLOR: Record<string, string> = {
   physical_motor: 'var(--color-domain-physical)',
@@ -105,104 +196,149 @@ const DOMAIN_COLOR: Record<string, string> = {
 <template>
   <div
     ref="cardEl"
-    class="baby-card"
-    :class="{ 'baby-card--revealed': isRevealed }"
-    role="link"
-    tabindex="0"
+    class="card-wrap"
     :style="{ animationDelay: `${props.index * 60}ms` }"
-    @click="goToTree()"
-    @keydown.enter.prevent="goToTree()"
-    @touchstart.passive="onTouchStart"
-    @touchend.passive="onTouchEnd"
+    @keydown.esc.stop="handleEscape"
   >
-    <div class="baby-card__header">
-      <span class="baby-card__name">{{ baby.name }}</span>
-      <span class="baby-card__age">{{ formatAge(baby.birthDate) }}</span>
+    <!-- Card content: slides left to reveal action chips -->
+    <div
+      ref="innerEl"
+      class="card-inner"
+      role="link"
+      tabindex="0"
+      :class="{ 'card-inner--snapping': isSnapping }"
+      :style="{ transform: `translateX(${dragX}px)` }"
+      @click="handleInnerClick"
+      @keydown.enter.prevent="handleInnerKeyEnter"
+      @touchstart.passive="onTouchStart"
+      @touchend.passive="onTouchEnd"
+    >
+      <div class="card-inner__header">
+        <span class="card-inner__name">{{ baby.name }}</span>
+        <span class="card-inner__age">{{ formatAge(baby.birthDate) }}</span>
+        <button
+          ref="kebabRef"
+          class="kebab-btn"
+          :aria-label="`Edit/Delete options for ${baby.name}`"
+          :aria-expanded="isRevealed"
+          @click.stop="handleKebabClick"
+          @keydown.enter.stop.prevent="handleKebabClick"
+          @keydown.space.stop.prevent="handleKebabClick"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="4" r="1.2" fill="currentColor"/>
+            <circle cx="9" cy="9" r="1.2" fill="currentColor"/>
+            <circle cx="9" cy="14" r="1.2" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="card-inner__grid">
+        <button
+          v-for="d in progress"
+          :key="d.domain"
+          class="domain-btn"
+          :style="{ '--domain-color': DOMAIN_COLOR[d.domain] }"
+          :aria-label="`${d.label}: ${d.acquired} of ${d.total} skills`"
+          @click.stop="isRevealed ? _close() : goToDomain(d.domain)"
+        >
+          <div
+            class="domain-btn__fill"
+            :style="{ width: mounted ? d.pct + '%' : '0%' }"
+          />
+          <span class="domain-btn__label">{{ d.label }}</span>
+          <span class="domain-btn__count">{{ d.acquired }}/{{ d.total }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Action chips: absolutely positioned, revealed when card slides left -->
+    <div class="card-actions" :aria-hidden="!isRevealed ? 'true' : undefined">
       <button
-        class="baby-card__pencil"
+        ref="editChipRef"
+        class="chip chip--edit"
+        :tabindex="isRevealed ? 0 : -1"
         :aria-label="`Edit ${baby.name}`"
-        tabindex="0"
-        @click.stop="toggleReveal"
-        @keydown.enter.stop.prevent="toggleReveal"
-        @keydown.space.stop.prevent="toggleReveal"
-      >✏</button>
-    </div>
-
-    <div v-if="isRevealed" class="baby-card__actions">
-      <button
-        class="action-btn action-btn--edit"
-        @click.stop="emit('edit')"
-      >Edit Profile</button>
-      <button
-        class="action-btn action-btn--delete"
-        @click.stop="emit('delete')"
-      >Delete</button>
-    </div>
-
-    <div class="baby-card__grid">
-      <button
-        v-for="d in progress"
-        :key="d.domain"
-        class="domain-btn"
-        :style="{ '--domain-color': DOMAIN_COLOR[d.domain] }"
-        :aria-label="`${d.label}: ${d.acquired} of ${d.total} skills`"
-        @click.stop="goToTree(d.domain)"
+        @click="handleEditClick"
       >
-        <div
-          class="domain-btn__fill"
-          :style="{ width: mounted ? d.pct + '%' : '0%' }"
-        />
-        <span class="domain-btn__label">{{ d.label }}</span>
-        <span class="domain-btn__count">{{ d.acquired }}/{{ d.total }}</span>
+        <!-- Pencil icon -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M12.5 2.5L15.5 5.5L6.5 14.5L3 15L3.5 11.5L12.5 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M11 4L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button
+        class="chip chip--delete"
+        :tabindex="isRevealed ? 0 : -1"
+        :aria-label="`Delete ${baby.name}`"
+        @click="handleDeleteClick"
+      >
+        <!-- Trash icon -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M3 5H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M7 5V3H11V5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M5 5L5.5 15H12.5L13 5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M8 8V12M10 8V12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
       </button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.baby-card {
-  display: block;
-  background: linear-gradient(180deg, var(--color-surface), #131b35);
+/* ── Wrapper: clips the sliding card, holds the actions layer ── */
+.card-wrap {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: var(--space-4);
-  cursor: pointer;
   box-shadow: var(--elev-2), var(--bevel);
-  transition: border-color 0.2s, box-shadow 0.2s;
   animation: card-enter 0.35s ease both;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 @keyframes card-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (hover: hover) {
+  .card-wrap:has(.card-inner:hover) {
+    border-color: var(--color-accent);
+    box-shadow: var(--elev-3), var(--bevel), 0 0 26px -4px rgba(6, 182, 212, 0.35);
   }
 }
 
-.baby-card:hover,
-.baby-card:focus-visible {
+.card-wrap:has(.card-inner:focus-visible) {
   border-color: var(--color-accent);
   box-shadow: var(--elev-3), var(--bevel), 0 0 26px -4px rgba(6, 182, 212, 0.35);
-  outline: none;
 }
 
-.baby-card--revealed {
-  border-color: var(--color-border-subtle);
+/* ── Card content: the full-width sliding layer ── */
+.card-inner {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, var(--color-surface), #131b35);
+  border-radius: var(--radius-md); /* mirrors wrapper; needed for clean edge at translateX 0 */
+  padding: var(--space-4);
+  cursor: pointer;
+  outline: none; /* wrapper handles the focus ring via :has() */
+  /* no transform transition here — snapping class adds it */
 }
 
-.baby-card__header {
+.card-inner--snapping {
+  transition: transform 0.25s ease;
+}
+
+.card-inner__header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-3);
   gap: var(--space-2);
 }
 
-.baby-card__name {
+.card-inner__name {
   font-family: var(--font-display);
   font-size: 18px;
   letter-spacing: 0.04em;
@@ -211,87 +347,42 @@ const DOMAIN_COLOR: Record<string, string> = {
   min-width: 0;
 }
 
-.baby-card__age {
+.card-inner__age {
   font-size: 13px;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
 
-.baby-card__pencil {
+/* ── Kebab trigger ── */
+.kebab-btn {
+  flex-shrink: 0;
   background: none;
   border: none;
   color: var(--color-text-muted);
-  font-size: 14px;
   cursor: pointer;
-  padding: var(--space-1);
-  line-height: 1;
-  min-width: 32px;
-  min-height: 32px;
+  padding: 0;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   transition: color 0.15s, background 0.15s;
-  flex-shrink: 0;
 }
 
-.baby-card__pencil:hover,
-.baby-card--revealed .baby-card__pencil {
+.kebab-btn:hover {
   color: var(--color-text);
   background: rgba(255, 255, 255, 0.06);
 }
 
-.baby-card__pencil:focus-visible {
+.kebab-btn:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+  border-radius: 50%;
 }
 
-.baby-card__actions {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
-}
-
-.action-btn {
-  flex: 1;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  min-height: 40px;
-  transition: opacity 0.15s, background 0.15s;
-}
-
-.action-btn:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 2px;
-}
-
-.action-btn--edit {
-  background: var(--color-skill-available);
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
-}
-
-.action-btn--edit:hover {
-  background: var(--color-skill-available-hover);
-}
-
-.action-btn--delete {
-  background: transparent;
-  border: 1px solid rgba(233, 69, 96, 0.45);
-  color: var(--color-error);
-}
-
-.action-btn--delete:hover {
-  background: rgba(233, 69, 96, 0.1);
-  border-color: var(--color-error);
-}
-
-.baby-card__grid {
+/* ── Domain grid ── */
+.card-inner__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
@@ -319,6 +410,11 @@ const DOMAIN_COLOR: Record<string, string> = {
   border-color: rgba(255, 255, 255, 0.22);
 }
 
+.domain-btn:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 .domain-btn__fill {
   position: absolute;
   inset: 0;
@@ -343,5 +439,45 @@ const DOMAIN_COLOR: Record<string, string> = {
   font-size: 11px;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+/* ── Action chips: absolute layer behind card-inner ── */
+.card-actions {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 64px; /* = REVEAL_WIDTH */
+  display: flex;
+  flex-direction: column;
+  z-index: 0;
+}
+
+.chip {
+  flex: 1;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: opacity 0.15s;
+}
+
+.chip:hover { opacity: 0.85; }
+
+.chip:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.8);
+  outline-offset: -3px;
+}
+
+.chip--edit {
+  background: var(--color-accent);
+  border-radius: 0 var(--radius-md) 0 0;
+}
+
+.chip--delete {
+  background: var(--color-error);
+  border-radius: 0 0 var(--radius-md) 0;
 }
 </style>
