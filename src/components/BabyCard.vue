@@ -444,10 +444,10 @@ const DOMAIN_COLOR: Record<string, string> = {
 /* ── Action chips: absolute layer behind card-inner ── */
 .card-actions {
   position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 64px; /* = REVEAL_WIDTH */
+  right: 1px;
+  top: 1px;
+  bottom: 1px;
+  width: 64px;
   display: flex;
   flex-direction: column;
   z-index: 0;

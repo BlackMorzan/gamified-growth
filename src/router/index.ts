@@ -6,7 +6,6 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     { path: '/', component: HomeView },
-    { path: '/setup', component: () => import('../views/ProfileSetupView.vue') },
     { path: '/tree/import', name: 'import', component: () => import('../views/ImportView.vue') },
     { path: '/tree/:babyName', name: 'skill-tree', component: () => import('../views/SkillTreeView.vue') },
     { path: '/tree/:babyName/export', name: 'export', component: () => import('../views/ExportView.vue') },
@@ -16,8 +15,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   const profileStore = useProfileStore()
   const hasBabies = profileStore.babies.length > 0
-  if (!hasBabies && to.path !== '/setup' && to.name !== 'import') return '/setup'
-  if (hasBabies && to.path === '/setup') return '/'
+  if (!hasBabies && to.path !== '/' && to.name !== 'import') return '/'
 })
 
 export default router

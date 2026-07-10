@@ -97,7 +97,11 @@ function onFileChange(event: Event) {
 }
 
 .import-view__input {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
 }
 
 .import-view__msg {
