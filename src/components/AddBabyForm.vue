@@ -8,7 +8,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  saved: []
+  saved: [newBabyId?: string]
   cancel: []
 }>()
 
@@ -51,10 +51,11 @@ function save() {
   if (!validate()) return
   if (props.editBaby) {
     profileStore.updateBaby(props.editBaby.id, name.value.trim(), birthDate.value)
+    emit('saved')
   } else {
-    profileStore.addBaby(name.value.trim(), birthDate.value)
+    const newBabyId = profileStore.addBaby(name.value.trim(), birthDate.value)
+    emit('saved', newBabyId ?? undefined)
   }
-  emit('saved')
 }
 </script>
 

@@ -57,12 +57,13 @@ export const useProfileStore = defineStore('profile', () => {
     activeBabyId.value = id
   }
 
-  /** Returns false if a baby with that name already exists. */
-  function addBaby(name: string, birthDate: string): boolean {
-    if (babies.value.some((b) => b.name === name)) return false
-    babies.value.push({ id: crypto.randomUUID(), name, birthDate })
+  /** Returns the new baby's id, or null if a baby with that name already exists. */
+  function addBaby(name: string, birthDate: string): string | null {
+    if (babies.value.some((b) => b.name === name)) return null
+    const id = crypto.randomUUID()
+    babies.value.push({ id, name, birthDate })
     _save()
-    return true
+    return id
   }
 
   function acquire(skillId: string, date: string): void {
@@ -100,6 +101,15 @@ export const useProfileStore = defineStore('profile', () => {
     baby.birthDate = birthDate
     _save()
     return true
+  }
+
+  /** Promotes a baby to the front of the list. No-op if already first or not found. */
+  function moveToTop(id: string): void {
+    const index = babies.value.findIndex((b) => b.id === id)
+    if (index <= 0) return
+    const [baby] = babies.value.splice(index, 1)
+    babies.value.unshift(baby!)
+    _save()
   }
 
   function deleteBaby(id: string): void {
@@ -216,6 +226,7 @@ export const useProfileStore = defineStore('profile', () => {
     unacquire,
     setAcquiredDate,
     updateBaby,
+    moveToTop,
     deleteBaby,
     saveSessionSnapshot,
     exportBaby,

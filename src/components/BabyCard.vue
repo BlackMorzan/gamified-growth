@@ -13,11 +13,14 @@ const props = defineProps<{
   progress: DomainProgress[]
   index: number
   sheetIsOpen: boolean
+  autoReveal?: boolean
 }>()
 
 const emit = defineEmits<{
   edit: []
   delete: []
+  'move-to-top': []
+  'auto-revealed': []
 }>()
 
 const router = useRouter()
@@ -30,6 +33,7 @@ const cardEl = ref<HTMLElement | null>(null)
 const innerEl = ref<HTMLElement | null>(null)
 const kebabRef = ref<HTMLButtonElement | null>(null)
 const editChipRef = ref<HTMLButtonElement | null>(null)
+const moveToTopChipRef = ref<HTMLButtonElement | null>(null)
 
 const showActions = computed(() => Math.abs(dragX.value) > 0.5 || isSnapping.value)
 
@@ -39,6 +43,16 @@ onMounted(() => { requestAnimationFrame(() => { mounted.value = true }) })
 watch(() => props.sheetIsOpen, (open) => {
   if (!open) _close()
 })
+
+// Auto-reveal after this baby was just added (M4) — focus lands on "Move to top".
+// immediate: true because the new BabyCard mounts with autoReveal already true —
+// there's no false→true transition within this instance's lifetime to catch otherwise.
+watch(() => props.autoReveal, (reveal) => {
+  if (reveal) {
+    _open('moveToTop')
+    emit('auto-revealed')
+  }
+}, { immediate: true })
 
 // Outside-tap listener — added/removed when isRevealed changes
 function _handleDocumentClick(e: MouseEvent) {
@@ -59,13 +73,17 @@ onUnmounted(() => {
   document.removeEventListener('click', _handleDocumentClick)
 })
 
-async function _open() {
+async function _open(focusTarget: 'edit' | 'moveToTop' = 'edit') {
   dragX.value = -REVEAL_WIDTH
   isRevealed.value = true
   isSnapping.value = true
   setTimeout(() => { isSnapping.value = false }, 280)
   await nextTick()
-  editChipRef.value?.focus()
+  if (focusTarget === 'moveToTop') {
+    moveToTopChipRef.value?.focus()
+  } else {
+    editChipRef.value?.focus()
+  }
 }
 
 function _close() {
@@ -100,6 +118,11 @@ function handleEditClick() {
 function handleDeleteClick() {
   _close()
   emit('delete')
+}
+
+function handleMoveToTopClick() {
+  _close()
+  emit('move-to-top')
 }
 
 // Card body click — close if revealed (don't navigate); navigate if closed
@@ -193,6 +216,10 @@ const DOMAIN_COLOR: Record<string, string> = {
   language_communication: 'var(--color-domain-language)',
   social_emotional: 'var(--color-domain-social)',
 }
+
+defineExpose({
+  focusKebab: () => kebabRef.value?.focus(),
+})
 </script>
 
 <template>
@@ -267,6 +294,20 @@ const DOMAIN_COLOR: Record<string, string> = {
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
           <path d="M12.5 2.5L15.5 5.5L6.5 14.5L3 15L3.5 11.5L12.5 2.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
           <path d="M11 4L14 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button
+        ref="moveToTopChipRef"
+        class="chip chip--move-top"
+        :tabindex="isRevealed ? 0 : -1"
+        :disabled="index === 0"
+        :aria-label="`Move ${baby.name} to top`"
+        @click="handleMoveToTopClick"
+      >
+        <!-- Up-arrow icon -->
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M9 14V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M4.5 8.5L9 4L13.5 8.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
         </svg>
       </button>
       <button
@@ -473,9 +514,20 @@ const DOMAIN_COLOR: Record<string, string> = {
   outline-offset: -3px;
 }
 
+.chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chip:disabled:hover { opacity: 0.4; }
+
 .chip--edit {
   background: var(--color-accent);
   border-radius: 0 var(--radius-md) 0 0;
+}
+
+.chip--move-top {
+  background: var(--color-amber);
 }
 
 .chip--delete {

@@ -44,6 +44,7 @@
   --color-accent:        #06b6d4;
   --color-error:         #e94560;
   --color-accent-gold:   #f5a623;
+  --color-amber:         #b45309;  /* move-to-top chip — distinct from --color-accent-gold (milestones only) */
   --color-success-text:  #5bbf7a;
   --color-disabled:      #3a3a52;
 

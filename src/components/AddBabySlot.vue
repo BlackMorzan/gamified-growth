@@ -5,6 +5,10 @@ import AddBabyForm from '@/components/AddBabyForm.vue'
 
 const profileStore = useProfileStore()
 
+const emit = defineEmits<{
+  added: [babyId: string]
+}>()
+
 const expanded = ref(profileStore.babies.length === 0)
 const triggerRef = ref<HTMLButtonElement | null>(null)
 const formWrapperRef = ref<HTMLDivElement | null>(null)
@@ -23,8 +27,9 @@ function toggleExpanded() {
   expanded.value = !expanded.value
 }
 
-function handleSaved() {
+function handleSaved(babyId?: string) {
   expanded.value = false
+  if (babyId) emit('added', babyId)
 }
 
 function handleCancel() {

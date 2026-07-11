@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useProfileStore } from '@/stores/profile'
 import { useBabyProgress } from '@/composables/useBabyProgress'
@@ -14,6 +14,26 @@ const { babies } = storeToRefs(profileStore)
 
 const editingBaby = ref<BabyProfile | null>(null)
 const deletingBaby = ref<BabyProfile | null>(null)
+const justAddedBabyId = ref<string | null>(null)
+const babyCardRefs = ref<Record<string, InstanceType<typeof BabyCard> | null>>({})
+
+function setBabyCardRef(id: string, el: unknown) {
+  babyCardRefs.value[id] = el as InstanceType<typeof BabyCard> | null
+}
+
+function handleBabyAdded(id: string) {
+  if (profileStore.babies.length > 1) {
+    justAddedBabyId.value = id
+  }
+}
+
+async function handleMoveToTop(id: string) {
+  profileStore.moveToTop(id)
+  await nextTick()
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+  babyCardRefs.value[id]?.focusKebab()
+}
 
 function progressFor(babyId: string) {
   return useBabyProgress(babyId).progress.value
@@ -48,19 +68,23 @@ function confirmDelete() {
       <h1 class="home__title">Baby Skill Tree</h1>
     </header>
 
-    <section class="home__list">
+    <TransitionGroup name="baby-list" tag="section" class="home__list">
       <BabyCard
         v-for="(baby, index) in babies"
         :key="baby.id"
+        :ref="(el) => setBabyCardRef(baby.id, el)"
         :baby="baby"
         :progress="progressFor(baby.id)"
         :index="index"
         :sheet-is-open="editingBaby?.id === baby.id || deletingBaby?.id === baby.id"
+        :auto-reveal="justAddedBabyId === baby.id"
         @edit="openEdit(baby)"
         @delete="openDelete(baby)"
+        @move-to-top="handleMoveToTop(baby.id)"
+        @auto-revealed="justAddedBabyId = null"
       />
-      <AddBabySlot />
-    </section>
+      <AddBabySlot key="add-baby-slot" @added="handleBabyAdded" />
+    </TransitionGroup>
 
     <!-- Edit profile sheet -->
     <BottomSheet
@@ -128,6 +152,16 @@ function confirmDelete() {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.baby-list-move {
+  transition: transform 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .baby-list-move {
+    transition: none;
+  }
 }
 
 /* Sheet content styles (not scoped inside BottomSheet) */
