@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import type { BabyProfile } from '@/types/user'
 import type { DomainProgress } from '@/composables/useBabyProgress'
@@ -30,6 +30,8 @@ const cardEl = ref<HTMLElement | null>(null)
 const innerEl = ref<HTMLElement | null>(null)
 const kebabRef = ref<HTMLButtonElement | null>(null)
 const editChipRef = ref<HTMLButtonElement | null>(null)
+
+const showActions = computed(() => Math.abs(dragX.value) > 0.5 || isSnapping.value)
 
 onMounted(() => { requestAnimationFrame(() => { mounted.value = true }) })
 
@@ -253,7 +255,7 @@ const DOMAIN_COLOR: Record<string, string> = {
     </div>
 
     <!-- Action chips: absolutely positioned, revealed when card slides left -->
-    <div class="card-actions" :aria-hidden="!isRevealed ? 'true' : undefined">
+    <div class="card-actions" v-show="showActions" :aria-hidden="!isRevealed ? 'true' : undefined">
       <button
         ref="editChipRef"
         class="chip chip--edit"
@@ -444,9 +446,9 @@ const DOMAIN_COLOR: Record<string, string> = {
 /* ── Action chips: absolute layer behind card-inner ── */
 .card-actions {
   position: absolute;
-  right: 1px;
-  top: 1px;
-  bottom: 1px;
+  right: 0;
+  top: 0;
+  bottom: 0;
   width: 64px;
   display: flex;
   flex-direction: column;
